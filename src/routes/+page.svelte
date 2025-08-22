@@ -14,5 +14,4 @@
 
 <div style="display: grid; justify-content: center;">
   <div style="margin: 1rem; max-width: 80rem;">future survivor stuff!</div>
-  <pr>test change</pr>
 </div>
