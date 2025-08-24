@@ -47,7 +47,7 @@
       </div>
     {/if}
     <div style="display: flex; justify-content: center; padding: 1rem; margin-bottom: 2rem; margin-top: 2rem;">
-      <XFollow x_handle="contibase" />
+      <XFollow x_handle="SurvivorSnuff" />
     </div>
     <div style="display: flex; justify-content: start; padding: 1rem; margin-top: 2rem;">
       <a
@@ -110,6 +110,6 @@
   }
   :root {
     --primary-c: var(--c10);
-    --primary-h: var(--h18);
+    --primary-h: var(--h3);
   }
 </style>
