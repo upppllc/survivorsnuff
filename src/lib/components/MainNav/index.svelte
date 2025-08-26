@@ -12,9 +12,9 @@
       support_icon: "house",
     },
     {
-      id: "test",
-      name: "Test",
-      route: "/test",
+      id: "seasons",
+      name: "Seasons",
+      route: "/seasons",
       support_icon: null,
     },
   ]
