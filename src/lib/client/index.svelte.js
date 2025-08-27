@@ -10,6 +10,7 @@ export function create_global_manager(config) {
   function init(config) {
     layout_manager = create_layout_manager({
       is_nav_always_top: true,
+      is_dark_theme: false,
       favicons: {
         favicon: "/favicon.svg",
         favicon_inactive: "/favicon-inactive.svg",

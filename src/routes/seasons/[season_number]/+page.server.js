@@ -1,4 +1,4 @@
-import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_CASTAWAYS_TABLE_ID, CONTIBASE_EPISODES_TABLE_ID } from "$env/static/private"
+import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_SEASONS_TABLE_ID, CONTIBASE_EPISODES_TABLE_ID } from "$env/static/private"
 import { error } from "@sveltejs/kit"
 
 export async function load({ fetch, params }) {
@@ -7,7 +7,7 @@ export async function load({ fetch, params }) {
   const season_query = new URLSearchParams()
   season_query.set("filters", JSON.stringify(season_filters))
   const get_seasons_res = await fetch(
-    `https://www.contibase.com/api/v1/tables/${CONTIBASE_CASTAWAYS_TABLE_ID}?${season_query.toString()}`,
+    `https://www.contibase.com/api/v1/tables/${CONTIBASE_SEASONS_TABLE_ID}?${season_query.toString()}`,
     {
       method: "GET",
       headers: {
