@@ -11,6 +11,20 @@
   let { data, children } = $props()
 </script>
 
+<svelte:head>
+  <title>Survivor Snuff</title>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="description" content="tbd" />
+  <meta property="og:title" content="survivorsnuff" />
+  <meta
+    property="og:description"
+    content="Everything about the show survicor. Episode recaps and updates on whats going on in the survovor world"
+  />
+  <meta property="og:image" content="https://www.survivorsnuff.com/thumbnail.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://www.survivorsnuff.com/thumbnail.webp" />
+</svelte:head>
+
 <Layout manager={global_manager?.layout_manager}>
   {#snippet nav_bar_logo()}
     <Logo />
