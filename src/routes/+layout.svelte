@@ -29,6 +29,9 @@
   {/snippet}
   {#snippet sub_bar()}
     <!-- tbd -->
+    <div style="padding: 1rem; background-color: oklch(var(--l16-t) var(--c10) var(--h2));">
+      Note: Still in development as of September 2025
+    </div>
   {/snippet}
   {#snippet full_nav()}
     <div style="margin: 1rem;">

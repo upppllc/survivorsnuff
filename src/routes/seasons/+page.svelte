@@ -20,8 +20,8 @@
             support_icon: "arrow_tailed",
             on_click: () => goto(`/seasons/${season?.season_number}`),
           }),
-          first_air_time_manager: create_time_manager({ ...season?.first_air_time, display_format: "calendar_date" }),
-          last_air_time_manager: create_time_manager({ ...season?.last_air_time, display_format: "calendar_date" }),
+          first_air_time_manager: create_time_manager({ val: season?.first_air_time, display_format: "calendar_date" }),
+          last_air_time_manager: create_time_manager({ val: season?.last_air_time, display_format: "calendar_date" }),
         })
       }
     }
@@ -40,8 +40,13 @@
           style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding: 1rem;"
         >
           <div>
-            <h3 style="margin: 0;">Season {season_prepped?.season_number}</h3>
-            <p>{season_prepped?.total_episodes} total episodes</p>
+            <h3 style="margin: 0;">
+              Season {season_prepped?.season_number}
+              {season_prepped?.title && season_prepped?.title != `Survivor ${season_prepped?.season_number}`
+                ? season_prepped?.title
+                : ""}
+            </h3>
+            <!-- <p>{season_prepped?.total_episodes} total episodes</p> -->
             <p>
               Aired <Time manager={season_prepped?.first_air_time_manager} /> to <Time
                 manager={season_prepped?.last_air_time_manager}
