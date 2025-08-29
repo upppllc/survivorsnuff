@@ -1,4 +1,9 @@
-import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_SEASONS_TABLE_ID, CONTIBASE_EPISODES_TABLE_ID } from "$env/static/private"
+import {
+  CONTIBASE_ACCESS_TOKEN,
+  CONTIBASE_SEASONS_TABLE_ID,
+  CONTIBASE_EPISODES_TABLE_ID,
+  CONTIBASE_CASTAWAYS_TABLE_ID,
+} from "$env/static/private"
 import { error } from "@sveltejs/kit"
 
 export async function load({ fetch, params }) {
@@ -6,42 +11,43 @@ export async function load({ fetch, params }) {
   const season_filters = { field: "season_number", operator: "eq", value: season_number }
   const season_query = new URLSearchParams()
   season_query.set("filters", JSON.stringify(season_filters))
-  const get_seasons_res = await fetch(
-    `https://www.contibase.com/api/v1/tables/${CONTIBASE_SEASONS_TABLE_ID}?${season_query.toString()}`,
-    {
-      method: "GET",
-      headers: {
-        authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
-      },
+  const headers = { authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}` }
+  const urls = {
+    season: `https://www.contibase.com/api/v1/tables/${CONTIBASE_SEASONS_TABLE_ID}?${season_query}`,
+    episodes: `https://www.contibase.com/api/v1/tables/${CONTIBASE_EPISODES_TABLE_ID}?${season_query}`,
+    castaways: `https://www.contibase.com/api/v1/tables/${CONTIBASE_CASTAWAYS_TABLE_ID}?${season_query}`,
+  }
+  const [season_result, episodes_result, castaways_result] = await Promise.allSettled([
+    fetch(urls.season, { headers }),
+    fetch(urls.episodes, { headers }),
+    fetch(urls.castaways, { headers }),
+  ])
+  function handle_fetch_result(result, label) {
+    if (result.status === "rejected") {
+      error(`failed to fetch ${label}: ${result.reason}`)
     }
-  )
-  const get_seasons_res_body = await get_seasons_res.json()
-  if (get_seasons_res.status < 200 || get_seasons_res.status >= 300) {
-    error(get_seasons_res_body?.message ?? "Error getting season")
+    return result.value
   }
-  const season = get_seasons_res_body?.rows?.[0]
-  if (!season) {
-    return { season: null, episodes: [], pitches: [], company_episode_updates: [] }
+  const season_res = handle_fetch_result(season_result, "season")
+  const episodes_res = handle_fetch_result(episodes_result, "episodes")
+  const castaways_res = handle_fetch_result(castaways_result, "castaways")
+  const [season_body, episodes_body, castaways_body] = await Promise.all([
+    season_res.json(),
+    episodes_res.json(),
+    castaways_res.json(),
+  ])
+  if (season_res.status < 200 || season_res.status >= 300) {
+    error(season_body?.message ?? "error getting season")
   }
-  const get_episodes_res = await fetch(
-    `https://www.contibase.com/api/v1/tables/${CONTIBASE_EPISODES_TABLE_ID}?${season_query.toString()}`,
-    {
-      method: "GET",
-      headers: {
-        authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
-      },
-    }
-  )
-  const get_episodes_res_body = await get_episodes_res.json()
-  if (get_episodes_res.status < 200 || get_episodes_res.status >= 300) {
-    error(get_episodes_res_body?.message ?? "Error getting episodes")
+  if (episodes_res.status < 200 || episodes_res.status >= 300) {
+    error(episodes_body?.message ?? "error getting episodes")
   }
-  const episodes = get_episodes_res_body?.rows ?? []
-  if (episodes.length === 0) {
-    return { season, episodes: [], pitches: [], company_episode_updates: [] }
+  if (castaways_res.status < 200 || castaways_res.status >= 300) {
+    error(castaways_body?.message ?? "error getting castaways")
   }
   return {
-    season: season,
-    episodes: episodes,
+    season: season_body?.rows?.[0],
+    episodes: episodes_body?.rows ?? [],
+    castaways: castaways_body?.rows ?? [],
   }
 }
