@@ -7,7 +7,7 @@ export function create_season_manager(config) {
   let castaways_prepped = $state(null)
   let view_seasons_button_manager = $state(null)
 
-  const storage_path = "/api/v1/storage/cb/{storage_id}"
+  const storage_path = "/api/v1/storage/{storage_id}"
 
   function init(input) {
     view_seasons_button_manager = create_button_manager({
@@ -51,7 +51,29 @@ export function create_season_manager(config) {
       }
     }
     episodes_prepped = episodes_prepped_loc.sort((a, b) => a.episode_number - b.episode_number)
-    castaways_prepped = input?.castaways
+    let castaways_prepped_loc = []
+    if (Array.isArray(input?.castaways)) {
+      for (let castaway of input?.castaways) {
+        let image_manager = create_image_manager({
+          storage_path,
+          storage_id: castaway?.image_storage_id,
+          alt: `${castaway?.name} survivor profile image`,
+          // image_width: 512,
+          // image_height: 512,
+          display_max_height: 400,
+          display_max_width: 400,
+          bg_img_blur: 20,
+          bg_img_opacity: 0.2,
+        })
+        castaways_prepped_loc.push({
+          ...castaway,
+          get image_manager() {
+            return image_manager
+          },
+        })
+      }
+    }
+    castaways_prepped = castaways_prepped_loc
   }
 
   init(config)
