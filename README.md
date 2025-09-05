@@ -15,4 +15,3 @@ Follow the blog post and video at https://www.contibase.com/blog/quick-start-gui
 ## Customize website icons, content, and launch Tutorial
 
 Follow the blog post and video at https://www.contibase.com/blog/customize-website
-]
