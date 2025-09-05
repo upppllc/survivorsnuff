@@ -1,6 +1,6 @@
 {
-  "name": "Sveltekit-UI",
-  "short_name": "Sveltekit-UI",
+  "name": "Survivor Snuff",
+  "short_name": "Survivor Snuff",
   "icons": [
     {
       "src": "android-chrome-192x192.png",
@@ -15,7 +15,7 @@
       "purpose": "any"
     }
   ],
-  "theme_color": "#0047b9",
-  "background_color": "#e3edff",
+  "theme_color": "#7c4100",
+  "background_color": "#ffe7d7",
   "display": "standalone"
 }
