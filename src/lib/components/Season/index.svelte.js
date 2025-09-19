@@ -6,6 +6,8 @@ export function create_season_manager(config) {
   let episodes_prepped = $state(null)
   let castaways_prepped = $state(null)
   let view_seasons_button_manager = $state(null)
+  let is_show_spoilers_button_manager = $state(null)
+  let is_show_spoilers = $state(true)
 
   const storage_path = "/api/v1/storage/{storage_id}"
 
@@ -17,6 +19,12 @@ export function create_season_manager(config) {
       icon_deg: 180,
       is_compressed: true,
       on_click: () => goto("/seasons"),
+    })
+    is_show_spoilers_button_manager = create_button_manager({
+      type: "outlined",
+      text: () => (is_show_spoilers ? "Hide Spoilers" : "Show Spoilers"),
+      is_compressed: true,
+      on_click: () => (is_show_spoilers = !is_show_spoilers),
     })
     let first_air_time_manager = create_time_manager({
       val: input?.season?.first_air_time,
@@ -90,6 +98,12 @@ export function create_season_manager(config) {
     },
     get castaways_prepped() {
       return castaways_prepped
+    },
+    get is_show_spoilers() {
+      return is_show_spoilers_button_manager
+    },
+    get is_show_spoilers_button_manager() {
+      return is_show_spoilers_button_manager
     },
   }
 }
