@@ -28,24 +28,23 @@
 <h2>Episodes</h2>
 <HorizScrollBox>
   {#if Array.isArray(manager?.episodes_prepped) && manager?.episodes_prepped.length > 0}
-    {#each manager?.episodes_prepped as episode, i (episode?.id)}
-      <div class="card" style="margin: 0;">
-        <h4>Episode {episode?.episode_number}</h4>
-        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <p class="label">Air Date</p>
-            <p><Time manager={episode?.air_time_manager} /></p>
-            <p class="label" style="margin-top: 1rem;">Viewers</p>
-            <p>{episode?.viewers_in_millions} million</p>
+    <div style="display: flex; gap: 1rem;">
+      {#each manager?.episodes_prepped as episode, i (episode?.id)}
+        <div class="card" style="margin: 0; min-width: 20rem;">
+          <h4>Episode {episode?.episode_number}</h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <p>{episode?.title}</p>
+              <!-- <p>Aired <Time manager={episode?.air_time_manager} /></p> -->
+              <p class="label" style="margin-top: 1rem;"></p>
+              <!-- <p>{episode?.viewers_live_same_day_millions} million Viewers</p> -->
+            </div>
+            <!-- <pre>{JSON.stringify(episode, null, 2)}</pre> -->
+            <!-- <Button manager={episode?.goto_episode_recap_button_manager} /> tbd -->
           </div>
-          <div>
-            <p class="label">Prod Code</p>
-            <p>{episode?.prod_code}</p>
-          </div>
-          <!-- <Button manager={episode?.goto_episode_recap_button_manager} /> tbd -->
         </div>
-      </div>
-    {/each}
+      {/each}
+    </div>
   {:else}
     <p>No Episodes Found</p>
   {/if}
