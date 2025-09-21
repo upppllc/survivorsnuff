@@ -99,7 +99,7 @@ export function create_season_manager(config) {
     get castaways_prepped() {
       return castaways_prepped
     },
-    get is_show_spoilers() {
+    get is_show_spoilers_button_manager() {
       return is_show_spoilers_button_manager
     },
     get is_show_spoilers() {
