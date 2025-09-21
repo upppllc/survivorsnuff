@@ -2,6 +2,19 @@
   import { Button, Image, Spacer, Time, HorizScrollBox } from "sveltekit-ui"
 
   let { manager } = $props()
+
+  function castaway_src(castaway_name) {
+    return `https://www.contibase.com/api/v1/storage/ukkvrwvfuaqnotejkqua__s${manager?.season_prepped?.season_number}__${(
+      castaway_name ?? ""
+    )
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\s'’\-–—]+/g, "_")
+      .replace(/[^a-z0-9_]/gi, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .toLowerCase()}`
+  }
 </script>
 
 <div style="display: flex; gap: 1rem;">
@@ -28,7 +41,7 @@
 <h2>Episodes</h2>
 <HorizScrollBox>
   {#if Array.isArray(manager?.episodes_prepped) && manager?.episodes_prepped.length > 0}
-    <div style="display: flex; gap: 1rem;">
+    <div style="display: flex; gap: 1rem; margin: .5rem;">
       {#each manager?.episodes_prepped as episode, i (episode?.id)}
         <div class="card" style="margin: 0; min-width: 20rem;">
           <h4>Episode {episode?.episode_number}</h4>
@@ -55,11 +68,7 @@
   {#each manager?.castaways_prepped as castaway}
     <div class="card" style="display: flex; gap: 1rem;">
       <div>
-        <img
-          src={`https://www.contibase.com/api/v1/storage/ukkvrwvfuaqnotejkqua__s${manager?.season_prepped?.season_number}__${castaway?.name.replaceAll(" ", "_").toLowerCase()}`}
-          alt={castaway?.name}
-          width="200"
-        />
+        <img src={castaway_src(castaway?.name)} alt={castaway?.name} width="200" />
       </div>
       <div>
         <h3>{castaway?.name}</h3>
@@ -106,11 +115,7 @@
               {#if castaway?.name == finalist}
                 <div class="card" style="display: flex; gap: 1rem; min-width: 26rem; margin: 0;">
                   <div>
-                    <img
-                      src={`https://www.contibase.com/api/v1/storage/ukkvrwvfuaqnotejkqua__s${manager?.season_prepped?.season_number}__${castaway?.name.replaceAll(" ", "_").toLowerCase()}`}
-                      alt={castaway?.name}
-                      width="50"
-                    />
+                    <img src={castaway_src(castaway?.name)} alt={castaway?.name} width="50" />
                   </div>
                   <div>
                     <h3>{castaway?.name}</h3>
