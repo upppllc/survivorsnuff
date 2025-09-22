@@ -9,6 +9,7 @@
     )
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\./g, "")
       .replace(/[\s'’\-–—]+/g, "_")
       .replace(/[^a-z0-9_]/gi, "_")
       .replace(/_+/g, "_")
