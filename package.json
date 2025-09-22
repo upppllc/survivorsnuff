@@ -10,12 +10,12 @@
   "devDependencies": {
     "@sveltejs/kit": "^2.42.2",
     "@sveltejs/vite-plugin-svelte": "^6.2.0",
-    "svelte": "^5.39.3",
+    "svelte": "^5.39.4",
     "vite": "^7.1.6",
     "@sveltejs/adapter-vercel": "^5.10.2"
   },
   "dependencies": {
-    "sveltekit-ui": "^1.0.65",
+    "sveltekit-ui": "^1.0.66",
     "@vercel/analytics": "^1.5.0"
   },
   "engines": {
