@@ -8555,7 +8555,7 @@
   {
     "id": "pzeywxihnrapjeiwqqkd",
     "age": 64,
-    "name": "Greg 'Tarzan' Smith",
+    "name": "Greg Smith",
     "race": "White",
     "gender": "Male",
     "traits": ["Eccentric", "Resourceful", "Unpredictable"],
@@ -8821,7 +8821,7 @@
   {
     "id": "wfwksvdxexxdspstvgiv",
     "age": 39,
-    "name": "Benjamin 'Coach' Wade",
+    "name": "Benjamin Wade",
     "race": "White",
     "gender": "Male",
     "traits": ["Charismatic", "Philosophical", "Ritual-Oriented"],
@@ -9106,7 +9106,7 @@
   {
     "id": "sfofhpyvytwbooedrnwq",
     "age": 48,
-    "name": "Mark 'Papa Bear' Caruso",
+    "name": "Mark Caruso",
     "race": "White",
     "gender": "Male",
     "traits": ["Big-Hearted", "Vocal", "Gutsy"],
@@ -9866,7 +9866,7 @@
   {
     "id": "wrxhxotlimwsaigwyxla",
     "age": 21,
-    "name": "Jud 'Fabio' Birza",
+    "name": "Jud Birza",
     "race": "White",
     "gender": "Male",
     "traits": ["Easygoing", "Athletic", "Clutch"],
@@ -9980,7 +9980,7 @@
   {
     "id": "vtyhwvexjelnvtsxgemf",
     "age": 24,
-    "name": "Ben 'Benry' Henry",
+    "name": "Ben Henry",
     "race": "White",
     "gender": "Male",
     "traits": ["Charming", "Athletic", "Social"],
@@ -10170,7 +10170,7 @@
   {
     "id": "hsfzhmpdzhdbutosgkzn",
     "age": 48,
-    "name": "James 'Jimmy T' Tarantino",
+    "name": "James Tarantino",
     "race": "White",
     "gender": "Male",
     "traits": ["Blunt", "Proud", "Old-School"],
@@ -10417,7 +10417,7 @@
   {
     "id": "boohrtioicodewywrwxl",
     "age": 25,
-    "name": "James 'JT' Thomas Jr.",
+    "name": "James Thomas",
     "race": "White",
     "gender": "Male",
     "traits": ["Bold", "Decisive", "Trusting"],
@@ -10455,7 +10455,7 @@
   {
     "id": "nkjsivwzbacbspnjzfhl",
     "age": 38,
-    "name": "Benjamin 'Coach' Wade",
+    "name": "Benjamin Wade",
     "race": "White",
     "gender": "Male",
     "traits": ["Mythic", "Loyal", "Earnest"],
@@ -10474,7 +10474,7 @@
   {
     "id": "ohtazjordyjsutlzzena",
     "age": 33,
-    "name": "Robert 'Boston Rob' Mariano",
+    "name": "Robert Mariano",
     "race": "White",
     "gender": "Male",
     "traits": ["Commanding", "Methodical", "Charismatic"],
@@ -10607,7 +10607,7 @@
   {
     "id": "rnhugdeitvxraaawkojl",
     "age": 29,
-    "name": "Jessica 'Sugar' Kiper",
+    "name": "Jessica Kiper",
     "race": "White",
     "gender": "Female",
     "traits": ["Bold", "Mercurial", "Performative"],
@@ -10721,7 +10721,7 @@
   {
     "id": "ortzwzujhuhnoefhyqhj",
     "age": 45,
-    "name": "Shannon 'Shambo' Waters",
+    "name": "Shannon Waters",
     "race": "White",
     "gender": "Female",
     "traits": ["Blunt", "Loyal", "Iconoclastic"],
@@ -11025,7 +11025,7 @@
   {
     "id": "xvwjhcrcdwoflhdfdvsx",
     "age": 25,
-    "name": "Andria 'Dreamz' Herd",
+    "name": "Andria Herd",
     "race": "Black",
     "gender": "Male",
     "traits": ["Energetic", "Mercurial", "Opportunistic"],
@@ -11196,7 +11196,7 @@
   {
     "id": "iqdyxmfmkbywalvtqjcm",
     "age": 36,
-    "name": "Lisette 'Lisi' Linares",
+    "name": "Lisette Linares",
     "race": "Latina",
     "gender": "Female",
     "traits": ["Blunt", "Stubborn", "Spirited"],
@@ -11215,7 +11215,7 @@
   {
     "id": "bvyhkfzferrkcaqmbxwy",
     "age": 28,
-    "name": "James 'Rocky' Reid",
+    "name": "James Reid",
     "race": "White",
     "gender": "Male",
     "traits": ["Volatile", "Funny", "Protective"],
@@ -11519,7 +11519,7 @@
   {
     "id": "vdbnongklrgewpmnzitq",
     "age": 20,
-    "name": "Michael 'Frosti' Zernow",
+    "name": "Michael Zernow",
     "race": "Mixed",
     "gender": "Male",
     "traits": ["Agile", "Earnest", "Adaptable"],
@@ -11652,7 +11652,7 @@
   {
     "id": "txipfbicdphrxopsspmr",
     "age": 47,
-    "name": "Steve 'Chicken' Morris",
+    "name": "Steve Morris",
     "race": "White",
     "gender": "Male",
     "traits": ["Plainspoken", "Stubborn", "Self-Reliant"],
@@ -11671,7 +11671,7 @@
   {
     "id": "qfhltwtijkzrgibcykbr",
     "age": 57,
-    "name": "Robert 'Bob' Crowley",
+    "name": "Robert Crowley",
     "race": "White",
     "gender": "Male",
     "traits": ["Inventive", "Calm", "Persistent"],
@@ -11709,7 +11709,7 @@
   {
     "id": "kvvvidulnhpextrfstrf",
     "age": 29,
-    "name": "Jessica 'Sugar' Kiper",
+    "name": "Jessica Kiper",
     "race": "White",
     "gender": "Female",
     "traits": ["Mercurial", "Social", "Bold"],
@@ -11918,7 +11918,7 @@
   {
     "id": "gwhfkentypqxkvymlpvq",
     "age": 25,
-    "name": "Danny 'GC' Brown",
+    "name": "Danny Brown",
     "race": "Black",
     "gender": "Male",
     "traits": ["Headstrong", "Impulsive", "Funny"],
@@ -12070,7 +12070,7 @@
   {
     "id": "sxdjghcubkowoewfnqja",
     "age": 37,
-    "name": "Tamara 'Taj' Johnson-George",
+    "name": "Tamara Johnson-George",
     "race": "Black",
     "gender": "Female",
     "traits": ["Warm", "Tough", "Loyal"],
@@ -12089,7 +12089,7 @@
   {
     "id": "wmzdgtprtpmiutudkqcf",
     "age": 37,
-    "name": "Benjamin 'Coach' Wade",
+    "name": "Benjamin Wade",
     "race": "White",
     "gender": "Male",
     "traits": ["Charismatic", "Ritualistic", "Stubborn"],
@@ -12678,7 +12678,7 @@
   {
     "id": "twljhtwwjdhrpttyrhgu",
     "age": 33,
-    "name": "Jon \"Jonny Fairplay\" Dalton",
+    "name": "Jon Dalton",
     "race": "White",
     "gender": "Male",
     "traits": ["Provocative", "Savvy", "Self-Preserving"],
@@ -12849,7 +12849,7 @@
   {
     "id": "wathhzujezsinhnlptrs",
     "age": 26,
-    "name": "Nathan \"Nate\" Gonzalez",
+    "name": "Nathan Gonzalez",
     "race": "Black",
     "gender": "Male",
     "traits": ["Gregarious", "Confident", "Loyal"],
@@ -12925,7 +12925,7 @@
   {
     "id": "ckkydvoxnveekuthdike",
     "age": 27,
-    "name": "Jessica \"Flicka\" Smith",
+    "name": "Jessica Smith",
     "race": "White",
     "gender": "Female",
     "traits": ["Free-Spirited", "Creative", "Impulsive"],
@@ -13628,7 +13628,7 @@
   {
     "id": "ysyzfwvqzynegkgfmaex",
     "age": 32,
-    "name": "Bobby \"Bob Dawg\" Mason",
+    "name": "Bobby Mason",
     "race": "Black",
     "gender": "Male",
     "traits": ["Bold", "Blunt", "Big-Hearted"],
@@ -13856,7 +13856,7 @@
   {
     "id": "rvuoiqrfqzmkrysiqiun",
     "age": 40,
-    "name": "Lea \"Sarge\" Masters",
+    "name": "Lea Masters",
     "race": "White",
     "gender": "Male",
     "traits": ["Alpha", "Protective", "Plainspoken"],
@@ -13970,7 +13970,7 @@
   {
     "id": "mpimlbwynrfwglykembx",
     "age": 33,
-    "name": "Travis \"Bubba\" Sampson",
+    "name": "Travis Sampson",
     "race": "White",
     "gender": "Male",
     "traits": ["Good-Natured", "Loyal", "Impulsive"],
@@ -14711,7 +14711,7 @@
   {
     "id": "viybcmxuraeqrnekagsv",
     "age": 51,
-    "name": "Maralyn \"Mad Dog\" Hershey",
+    "name": "Maralyn Hershey",
     "race": "White",
     "gender": "Female",
     "traits": ["Forthright", "Tough", "Good-Humored"],
@@ -15072,7 +15072,7 @@
   {
     "id": "jvcuetifzczdnixfonxo",
     "age": 51,
-    "name": "Lillian \"Lil\" Morris",
+    "name": "Lillian Morris",
     "race": "White",
     "gender": "Female",
     "traits": ["Earnest", "Conflicted", "Persistent"],
@@ -15091,7 +15091,7 @@
   {
     "id": "bulkupfgywuuxmnhhnzk",
     "age": 29,
-    "name": "Jonathan \"Jonny Fairplay\" Dalton",
+    "name": "Jon Dalton",
     "race": "White",
     "gender": "Male",
     "traits": ["Scheming", "Provocative", "Fearless"],
@@ -16402,7 +16402,7 @@
   {
     "id": "bccuxvwttipokssemdvc",
     "age": 38,
-    "name": "Robert \"The General\" DeCanio",
+    "name": "Robert DeCanio",
     "race": "White",
     "gender": "Male",
     "traits": ["Gregarious", "Physical", "Loyal"],
