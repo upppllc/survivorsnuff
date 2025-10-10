@@ -8,14 +8,14 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@sveltejs/kit": "^2.43.7",
+    "@sveltejs/kit": "^2.46.4",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
-    "svelte": "^5.39.8",
-    "vite": "^7.1.7",
-    "@sveltejs/adapter-vercel": "^5.10.2"
+    "svelte": "^5.39.11",
+    "vite": "^7.1.9",
+    "@sveltejs/adapter-vercel": "^5.10.3"
   },
   "dependencies": {
-    "sveltekit-ui": "^1.0.72",
+    "sveltekit-ui": "^1.0.80",
     "@vercel/analytics": "^1.5.0"
   },
   "engines": {

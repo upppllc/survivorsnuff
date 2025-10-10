@@ -46,6 +46,13 @@ export function create_season_manager(config) {
     let episodes_prepped_loc = []
     if (Array.isArray(input?.episodes)) {
       for (let episode of input?.episodes) {
+        let goto_episode_recap_button_manager = create_button_manager({
+          type: "outlined",
+          text: "Overview",
+          support_icon: "arrow_tailed",
+          is_compressed: true,
+          on_click: () => goto(`/seasons/${episode?.season_number}/${episode?.episode_number}`),
+        })
         let air_time_manager = create_time_manager({
           ...episode?.air_time,
           display_format: "calendar_date",
@@ -54,6 +61,9 @@ export function create_season_manager(config) {
           ...episode,
           get air_time_manager() {
             return air_time_manager
+          },
+          get goto_episode_recap_button_manager() {
+            return goto_episode_recap_button_manager
           },
         })
       }
