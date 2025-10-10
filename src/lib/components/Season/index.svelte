@@ -49,12 +49,8 @@
           <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
             <div>
               <p>{episode?.title}</p>
-              <!-- <p>Aired <Time manager={episode?.air_time_manager} /></p> -->
-              <p class="label" style="margin-top: 1rem;"></p>
-              <!-- <p>{episode?.viewers_live_same_day_millions} million Viewers</p> -->
             </div>
-            <!-- <pre>{JSON.stringify(episode, null, 2)}</pre> -->
-            <!-- <Button manager={episode?.goto_episode_recap_button_manager} /> tbd -->
+            <Button manager={episode?.goto_episode_recap_button_manager} />
           </div>
         </div>
       {/each}
@@ -67,7 +63,7 @@
 <h2>Castaways</h2>
 {#if Array.isArray(manager?.castaways_prepped) && manager?.castaways_prepped?.length > 0}
   {#each manager?.castaways_prepped as castaway}
-    <div class="card" style="display: flex; gap: 1rem;">
+    <div class="card castaway_container">
       <div>
         <img src={castaway_src(castaway?.name)} alt={castaway?.name} width="200" />
       </div>
@@ -149,3 +145,15 @@
     {/if}
   </div>
 {/if}
+
+<style>
+  .castaway_container {
+    display: flex;
+    gap: 1rem;
+  }
+  @media (max-width: 600px) {
+    .castaway_container {
+      flex-direction: column;
+    }
+  }
+</style>
