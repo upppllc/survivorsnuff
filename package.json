@@ -15,7 +15,7 @@
     "@sveltejs/adapter-vercel": "^5.10.3"
   },
   "dependencies": {
-    "sveltekit-ui": "^1.0.80",
+    "sveltekit-ui": "^1.0.81",
     "@vercel/analytics": "^1.5.0"
   },
   "engines": {
