@@ -2,8 +2,8 @@ import { CONTIBASE_ACCESS_TOKEN } from "$env/static/private"
 import { error } from "@sveltejs/kit"
 
 export async function load({ fetch, params }) {
-  const season_number = params?.season_number
-  const episode_number = params?.episode_number
+  const season_number = Number(params?.season_number)
+  const episode_number = Number(params?.episode_number)
   if (!season_number) {
     error(400, "missing season_number")
   }
@@ -15,10 +15,14 @@ export async function load({ fetch, params }) {
   season_query.set("filters", JSON.stringify(season_filters))
   const episodes_filters = {
     and: [
-      { field: "season", operator: "eq", value: season_number },
+      { field: "season_number", operator: "eq", value: season_number },
       { field: "episode_number", operator: "eq", value: episode_number },
     ],
   }
+  const episodes_query = new URLSearchParams()
+  episodes_query.set("filters", JSON.stringify(episodes_filters))
+
+  console.log("episodes_filters", episodes_filters)
   const [get_season_res, get_episode_res] = await Promise.all([
     fetch(`https://www.contibase.com/api/v1/tables/mtuelwvmmoscrnuwpzml?${season_query.toString()}`, {
       method: "GET",
@@ -26,7 +30,7 @@ export async function load({ fetch, params }) {
         authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
       },
     }),
-    fetch(`https://www.contibase.com/api/v1/tables/dglmugnttgptblzbelap?${episodes_filters.toString()}`, {
+    fetch(`https://www.contibase.com/api/v1/tables/dglmugnttgptblzbelap?${episodes_query.toString()}`, {
       method: "GET",
       headers: {
         authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
@@ -42,23 +46,25 @@ export async function load({ fetch, params }) {
   if (get_episode_res.status < 200 || get_episode_res.status >= 300) {
     error(get_episode_res_body?.message ?? "Error getting episode")
   }
+  console.log("epi_rows_len", get_episode_res_body?.rows.length)
   const episode = get_episode_res_body?.rows?.[0]
   let post = null
+  console.log("episode_number", { episode_number, en2: episode?.episode_number })
+  console.log("episodost_id44", episode?.post_id)
   if (episode?.post_id) {
     const post_res = await fetch(`https://www.contibase.com/api/v1/pages/${episode?.post_id}`, {
       method: "GET",
       headers: { authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}` },
     })
-    console.log("post_res", post_res)
     const post_res_body = await post_res.json()
-    console.log("post_res_body", post_res_body)
     if (post_res_body?.id) {
       post = post_res_body
     }
   }
+  console.log("epi_post33", post?.id)
   return {
     season: season,
     episode: episode,
-    page: post,
+    post: post,
   }
 }
