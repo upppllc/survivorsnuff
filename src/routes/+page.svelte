@@ -2,7 +2,6 @@
   import PreviewCard from "$lib/components/PreviewCard/index.svelte"
 
   let { data } = $props()
-  console.log("data", data)
 </script>
 
 <div style="margin: 1rem; max-width: 80rem;">
