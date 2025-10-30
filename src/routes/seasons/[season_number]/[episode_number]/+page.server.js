@@ -43,8 +43,22 @@ export async function load({ fetch, params }) {
     error(get_episode_res_body?.message ?? "Error getting episode")
   }
   const episode = get_episode_res_body?.rows?.[0]
+  let post = null
+  if (episode?.post_id) {
+    const post_res = await fetch(`https://www.contibase.com/api/v1/pages/${episode?.post_id}`, {
+      method: "GET",
+      headers: { authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}` },
+    })
+    console.log("post_res", post_res)
+    const post_res_body = await post_res.json()
+    console.log("post_res_body", post_res_body)
+    if (post_res_body?.id) {
+      post = post_res_body
+    }
+  }
   return {
     season: season,
     episode: episode,
+    page: post,
   }
 }
