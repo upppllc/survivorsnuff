@@ -21,11 +21,15 @@
   import { goto } from "$app/navigation"
   import { page } from "$app/state"
   import { PUBLIC_APPLE_MAPKIT_JS_API_KEY } from "$env/static/public"
+  import Post from "$lib/components/Post/index.svelte"
+  import { create_post_manager } from "$lib/components/Post/index.svelte.js"
 
   let { data } = $props()
-  console.log("data", data)
+  // console.log("data", data)
 
-  const storage_path = "/api/v1/storage/cb/{storage_id}"
+  let is_show_spoilers_button_manager = $state(null)
+  let is_show_spoilers = $state(false)
+
   let to_season_button_manager = create_button_manager({
     type: "outlined",
     is_compressed: true,
@@ -35,108 +39,25 @@
     text: `Season ${data?.season?.season_number} Overview`,
     on_click: () => goto(`/seasons/${data?.season?.season_number}`),
   })
-
-  let air_time_manager = create_time_manager({
-    val: data?.episode?.air_time,
-    // format: "calendar_date",
-  })
-
-  let is_show_spoilers = $state(false)
-
-  let is_show_spoilers_button_manager = create_button_manager({
+  is_show_spoilers_button_manager = create_button_manager({
     type: "outlined",
     text: () => (is_show_spoilers ? "Hide Spoilers" : "Show Spoilers"),
     is_compressed: true,
     on_click: () => (is_show_spoilers = !is_show_spoilers),
   })
+  let air_time_manager = create_time_manager({
+    val: data?.episode?.air_time,
+    // format: "calendar_date",
+  })
 
-  let clock_icon_manager = create_icon_manager({
-    icon_id: "clock",
-    size: 1.6,
-    sw: 50,
-    color: "var(--g8-t)",
-  })
-  function copy_to_share_on_twitter() {
-    const markdown = `
-${data?.page?.title?.attributes?.content}
-https://www.survivorsnuff.com/seasons/${data?.episode?.season_number}/${data?.episode?.episode_number}`
-    copy_to_clipboard(markdown)
-    share_button_manager.set_text("Copied Tweet")
-    setTimeout(() => {
-      share_button_manager.set_text("Copy Tweet")
-    }, 1800)
+  let post_manager = $state(null)
+  if (data?.post) {
+    post_manager = create_post_manager({
+      season_number: data?.episode?.season_number,
+      episode_number: data?.episode?.episode_number,
+      post: data?.post,
+    })
   }
-  let copy_link_button_manager = create_button_manager({
-    text: "Copy Link",
-    support_icon: "share",
-    is_success_animation: true,
-    fixed_width: 14,
-    text_align: "left",
-    icon_bg_tint: true,
-    hover_shadow_color: "oklch(var(--l6-t) var(--c3) var(--h3) / var(--o7))",
-    hover_shadow_size: 1,
-    h: 11,
-    l: 1,
-    c: 1,
-    on_click: () => {
-      copy_link_button_manager.set_text("Copied URL")
-      copy_to_clipboard(page?.url?.href)
-      setTimeout(() => {
-        copy_link_button_manager.set_text("Copy Link")
-      }, 1800)
-    },
-  })
-  let share_button_manager = create_button_manager({
-    text: "Copy Tweet",
-    support_icon: "share",
-    is_success_animation: true,
-    fixed_width: 14,
-    text_align: "left",
-    icon_bg_tint: true,
-    hover_shadow_color: "oklch(var(--l6-t) var(--c3) var(--h3) / var(--o7))",
-    hover_shadow_size: 1,
-    h: 11,
-    l: 1,
-    c: 1,
-    on_click: () => copy_to_share_on_twitter(),
-  })
-  let share_qr_manager = create_qr_manager({
-    margin: 0,
-    size: 200,
-    image_size: 1,
-    type_number: 0,
-    color: "oklch(var(--l8-t) var(--c4) var(--primary-h))",
-    corner_color: "oklch(var(--l12-t) var(--c2) var(--primary-h))",
-    border_color: "transparent",
-    background_color: "var(--bg)",
-    border_radius: null,
-    border_r: null,
-    border_radius: null,
-    error_correction_level: "M",
-    data: `https://www.survivorsnuff.com/seasons/${data?.episode?.season_number}/${data?.episode?.episode_number}`,
-    image: "/favicon.svg",
-  })
-  let main_content_manager = create_content_manager({
-    val: data?.page?.segments?.main?.val,
-    storage_path,
-    mapkit_js_token: PUBLIC_APPLE_MAPKIT_JS_API_KEY,
-  })
-  let main_image = data?.page?.main_image
-  if (main_image && typeof main_image == "object") {
-    main_image.attributes = {
-      ...main_image?.attributes,
-      alt: main_image?.attributes?.alt || data?.page?.title?.attributes?.content,
-      display_max_height: 500,
-      border_radius: 1,
-      bg_img_blur: 20,
-      bg_img_opacity: 0.2,
-      storage_path,
-    }
-  }
-  let main_image_content_manager = create_content_manager({
-    val: main_image,
-    storage_path,
-  })
 </script>
 
 <div class="container">
@@ -245,67 +166,9 @@ https://www.survivorsnuff.com/seasons/${data?.episode?.season_number}/${data?.ep
       </div>
     {/if}
   {/if}
-
-  <h1 style="color: var(--primary-t);">
-    {data?.page?.title?.attributes?.content}
-  </h1>
-  <div class="times">
-    {#if data?.page?.time_created?.datetime}
-      <p>
-        Published: <time datetime={data?.page?.time_created?.datetime}>{data?.page?.time_created?.content}</time>
-      </p>
-    {/if}
-    {#if data?.page?.time_created?.epoch && data?.page?.time_updated?.epoch && data?.page?.time_created?.epoch < data?.page?.time_updated?.epoch}
-      <p>
-        Last updated on: <time datetime={data?.page?.time_updated?.datetime}>{data?.page?.time_updated?.content}</time>
-      </p>
-    {/if}
-    <div style="display: flex; align-items: center; gap: .3rem;">
-      <Icon manager={clock_icon_manager} />
-      <p>{data?.page?.derived_view_time_mins}m</p>
-    </div>
-    {#if data?.page?.location_relevant?.name}
-      <p>{data?.page?.location_relevant?.name}</p>
-    {/if}
-  </div>
-  {#if Array.isArray(data?.page?.derived_topic_tags) && data?.page.derived_topic_tags.length > 0}
-    <div style="display: flex; flex-wrap: wrap; margin-bottom: 1rem;">
-      {#each data?.page.derived_topic_tags as tag}
-        <div
-          class="tag"
-          style="
-            --bgcolor: oklch(var(--l6-t) var(--c16) var(--h{tag?.hue}) / var(--o4)); 
-            --bordercolor: oklch(var(--l6-t) var(--c16) var(--h{tag?.hue}) / var(--o8));"
-        >
-          {tag?.name}
-          {tag?.emoji}
-        </div>
-      {/each}
-    </div>
+  {#if data?.post}
+    <Post manager={post_manager} />
   {/if}
-  {#if data?.page?.main_image}
-    <div style="aspect-ratio: 1.5;">
-      <Content manager={main_image_content_manager} />
-    </div>
-  {/if}
-  <hr />
-  <Content manager={main_content_manager} />
-  <hr />
-  <div class="share_container">
-    <Qr manager={share_qr_manager} />
-    <div style="display: flex; flex-direction: column; justify-content: space-between; flex: 1; margin: .5rem;">
-      <div>
-        <h3>Share page</h3>
-        <p style="word-break: break-all;">
-          https://www.sharktankupdate.com/seasons/{data?.season_number}/{data?.episode_number}/{data?.pitch_name_key}
-        </p>
-        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0;">
-          <Button manager={copy_link_button_manager} />
-          <Button manager={share_button_manager} />
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <style>
@@ -314,37 +177,5 @@ https://www.survivorsnuff.com/seasons/${data?.episode?.season_number}/${data?.ep
     margin: 0 auto;
     padding: 1rem;
     margin-bottom: 1rem;
-  }
-  .share_container {
-    border: 1px solid var(--shadow8-t);
-    border-radius: 2rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 5rem;
-    padding: 1rem;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  .times {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 1rem 0;
-  }
-  .times p {
-    margin-right: 2rem;
-    color: var(--g8-t);
-  }
-  .times time {
-    color: var(--g8-t);
-  }
-  .tag {
-    border-radius: 1rem;
-    border: 1px solid var(--bordercolor);
-    background-color: var(--bgcolor);
-    font-size: 1.4rem;
-    padding: 0.1rem 0.5rem;
-    margin-right: 1rem;
-    margin-bottom: 0.5rem;
   }
 </style>
