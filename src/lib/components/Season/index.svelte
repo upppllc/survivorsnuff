@@ -89,7 +89,7 @@
         <p>{castaway?.life_experience}</p>
         <p class="label">Unique Gameplay</p>
         <p>{castaway?.unique_gameplay}</p>
-        {#if manager?.is_show_spoilers}
+        {#if manager?.is_show_spoilers && Number.isInteger(castaway?.result_order)}
           <p class="label">Finish</p>
           <p>{castaway?.result_order}{castaway?.is_on_jury ? " (On Jury)" : ""}</p>
           <p></p>
@@ -150,6 +150,9 @@
   .castaway_container {
     display: flex;
     gap: 1rem;
+  }
+  .label {
+    margin-top: 0.4rem;
   }
   @media (max-width: 600px) {
     .castaway_container {
