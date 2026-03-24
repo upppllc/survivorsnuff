@@ -100,8 +100,7 @@
     src:
       local(""),
       url("/fonts/ProximaVara.woff2") format("woff2 supports variations"),
-      url("/fonts/ProximaVara.woff2") format("woff2-variations"),
-      url("/fonts/ProximaVara.woff") format("woff-variations");
+      url("/fonts/ProximaVara.woff2") format("woff2-variations");
     font-weight: 100 900;
     font-stretch: 50% 100%;
     font-display: swap;
