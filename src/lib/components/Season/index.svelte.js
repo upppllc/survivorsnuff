@@ -7,7 +7,10 @@ export function create_season_manager(config) {
   let castaways_prepped = $state(null)
   let view_seasons_button_manager = $state(null)
   let is_show_spoilers_button_manager = $state(null)
+  let expanded_castaway_view_button_manager = $state(null)
+  let grid_castaway_view_button_manager = $state(null)
   let is_show_spoilers = $state(true)
+  let castaway_view = $state("expanded")
 
   const storage_path = "/api/v1/storage/{storage_id}"
 
@@ -25,6 +28,20 @@ export function create_season_manager(config) {
       text: () => (is_show_spoilers ? "Hide Spoilers" : "Show Spoilers"),
       is_compressed: true,
       on_click: () => (is_show_spoilers = !is_show_spoilers),
+    })
+    expanded_castaway_view_button_manager = create_button_manager({
+      type: "outlined",
+      text: "Expanded",
+      is_compressed: true,
+      selected_type: () => (castaway_view == "expanded" ? "selected" : null),
+      on_click: () => (castaway_view = "expanded"),
+    })
+    grid_castaway_view_button_manager = create_button_manager({
+      type: "outlined",
+      text: "Grid",
+      is_compressed: true,
+      selected_type: () => (castaway_view == "grid" ? "selected" : null),
+      on_click: () => (castaway_view = "grid"),
     })
     let first_air_time_manager = create_time_manager({
       val: input?.season?.first_air_time,
@@ -114,6 +131,15 @@ export function create_season_manager(config) {
     },
     get is_show_spoilers() {
       return is_show_spoilers
+    },
+    get castaway_view() {
+      return castaway_view
+    },
+    get expanded_castaway_view_button_manager() {
+      return expanded_castaway_view_button_manager
+    },
+    get grid_castaway_view_button_manager() {
+      return grid_castaway_view_button_manager
     },
   }
 }

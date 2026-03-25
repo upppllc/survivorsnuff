@@ -3,10 +3,7 @@
   import Season from "$lib/components/Season/index.svelte"
 
   let { data } = $props()
-
-  console.log("data", data)
-
-  let manager = create_season_manager(data)
+  let manager = $derived(create_season_manager(data))
 </script>
 
 <div style="margin: 1rem;">
