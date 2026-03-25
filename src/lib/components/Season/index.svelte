@@ -185,7 +185,8 @@
   .castaway_view_toggle {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 1rem;
+    margin: 1rem;
   }
   .castaway_grid {
     display: grid;
@@ -197,7 +198,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
+    gap: 1rem;
     margin: 0;
     width: 100%;
     text-align: left;
@@ -208,7 +209,7 @@
     aspect-ratio: 1;
     object-fit: cover;
     object-position: center 0%;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
   }
   .castaway_grid_body {
     display: flex;
@@ -236,6 +237,12 @@
   @media (max-width: 600px) {
     .castaway_container {
       flex-direction: column;
+    }
+    .castaway_grid_body p {
+      font-size: clamp(1rem, 1.8vw, 1.4rem);
+    }
+    .label_inline {
+      font-size: clamp(1rem, 1.8vw, 1.4rem);
     }
   }
 </style>
