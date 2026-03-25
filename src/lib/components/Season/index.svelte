@@ -1,5 +1,5 @@
 <script>
-  import { Button, Image, Spacer, Time, HorizScrollBox } from "sveltekit-ui"
+  import { Button, Spacer, Time, HorizScrollBox } from "sveltekit-ui"
 
   let { manager } = $props()
 
@@ -18,7 +18,7 @@
   }
 </script>
 
-<div style="display: flex; gap: 1rem;">
+<div class="season_actions">
   <Button manager={manager?.view_seasons_button_manager} />
   <Button manager={manager?.is_show_spoilers_button_manager} />
 </div>
@@ -60,45 +60,68 @@
   {/if}
 </HorizScrollBox>
 
-<h2>Castaways</h2>
+<div class="castaway_header">
+  <h2>Castaways</h2>
+  <div class="castaway_view_toggle">
+    <Button manager={manager?.expanded_castaway_view_button_manager} />
+    <Button manager={manager?.grid_castaway_view_button_manager} />
+  </div>
+</div>
 {#if Array.isArray(manager?.castaways_prepped) && manager?.castaways_prepped?.length > 0}
-  {#each manager?.castaways_prepped as castaway}
-    <div class="card castaway_container">
-      <div>
-        <img src={castaway_src(castaway?.name)} alt={castaway?.name} width="200" />
-      </div>
-      <div>
-        <h3>{castaway?.name}</h3>
-        <p class="label">Age</p>
-        <p>{castaway?.age}</p>
-        <!-- <p class="label">Gender</p>
-        <p>{castaway?.gender}</p>
-        <p class="label">Race</p>
-        <p>{castaway?.race}</p> -->
-        <p class="label">Hometown</p>
-        <p>{castaway?.hometown}</p>
-        <p class="label">Current Residence</p>
-        <p>{castaway?.current_residence}</p>
-        <p class="label">Occupation</p>
-        <p>{castaway?.occupation}</p>
-        <p class="label">Traits</p>
-        <p>{Array.isArray(castaway?.traits) ? castaway.traits.join(", ") : ""}</p>
-        <p class="label">Why Applied</p>
-        <p>{castaway?.why_applied}</p>
-        <p class="label">Life Experience</p>
-        <p>{castaway?.life_experience}</p>
-        <p class="label">Unique Gameplay</p>
-        <p>{castaway?.unique_gameplay}</p>
-        {#if manager?.is_show_spoilers && Number.isInteger(castaway?.result_order)}
-          <p class="label">Finish</p>
-          <p>{castaway?.result_order}{castaway?.is_on_jury ? " (On Jury)" : ""}</p>
-          <p></p>
-        {/if}
-      </div>
+  {#if manager?.castaway_view == "grid"}
+    <div class="castaway_grid">
+      {#each manager?.castaways_prepped as castaway}
+        <div class="card castaway_grid_card">
+          <img class="castaway_grid_image" src={castaway_src(castaway?.name)} alt={castaway?.name} />
+          <div class="castaway_grid_body">
+            <h3 class="castaway_grid_name">{castaway?.name}</h3>
+            <p><span class="label_inline">Age:</span> {castaway?.age ?? "Unknown"}</p>
+            <p><span class="label_inline">Hometown:</span> {castaway?.hometown ?? "Unknown"}</p>
+            <p><span class="label_inline">Current Res:</span> {castaway?.current_residence ?? "Unknown"}</p>
+            <p><span class="label_inline">Job:</span> {castaway?.occupation ?? "Unknown"}</p>
+          </div>
+        </div>
+      {/each}
     </div>
-  {/each}
+  {:else}
+    {#each manager?.castaways_prepped as castaway}
+      <div class="card castaway_container">
+        <div>
+          <img src={castaway_src(castaway?.name)} alt={castaway?.name} width="200" />
+        </div>
+        <div>
+          <h3>{castaway?.name}</h3>
+          <p class="label">Age</p>
+          <p>{castaway?.age}</p>
+          <!-- <p class="label">Gender</p>
+          <p>{castaway?.gender}</p>
+          <p class="label">Race</p>
+          <p>{castaway?.race}</p> -->
+          <p class="label">Hometown</p>
+          <p>{castaway?.hometown}</p>
+          <p class="label">Current Residence</p>
+          <p>{castaway?.current_residence}</p>
+          <p class="label">Occupation</p>
+          <p>{castaway?.occupation}</p>
+          <p class="label">Traits</p>
+          <p>{Array.isArray(castaway?.traits) ? castaway.traits.join(", ") : ""}</p>
+          <p class="label">Why Applied</p>
+          <p>{castaway?.why_applied}</p>
+          <p class="label">Life Experience</p>
+          <p>{castaway?.life_experience}</p>
+          <p class="label">Unique Gameplay</p>
+          <p>{castaway?.unique_gameplay}</p>
+          {#if manager?.is_show_spoilers && Number.isInteger(castaway?.result_order)}
+            <p class="label">Finish</p>
+            <p>{castaway?.result_order}{castaway?.is_on_jury ? " (On Jury)" : ""}</p>
+            <p></p>
+          {/if}
+        </div>
+      </div>
+    {/each}
+  {/if}
 {:else}
-  <p>No Episodes Found</p>
+  <p>No Castaways Found</p>
 {/if}
 
 {#if manager?.is_show_spoilers}
@@ -147,6 +170,62 @@
 {/if}
 
 <style>
+  .season_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .castaway_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .castaway_view_toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .castaway_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+  }
+  .castaway_grid_card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin: 0;
+    width: 100%;
+    text-align: left;
+  }
+  .castaway_grid_image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: center 0%;
+    border-radius: 0.75rem;
+  }
+  .castaway_grid_body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .castaway_grid_name {
+    margin: 0;
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    line-height: 1.2;
+  }
+  .castaway_grid_body p {
+    margin: 0;
+  }
+  .label_inline {
+    font-weight: 600;
+  }
   .castaway_container {
     display: flex;
     gap: 1rem;
