@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { castawayImageSrc } from "../castaways.js"
+import { castawayImageSrc, sortCastawaysAlphabetically } from "../castaways.js"
 import { castawayCanvasSize, measureCastawayImage, wrapImageText } from "./castaway-export.js"
 
 const measure = (text, size = 1) => Array.from(text).length * size * 0.52
@@ -16,6 +16,7 @@ const castaways = Array.from({ length: 18 }, (_, index) => ({
   life_experience: "I have learned to listen carefully and stay patient.",
   unique_gameplay: "Build strong relationships and keep my options open.",
   summary: "An enthusiastic new castaway.",
+  profile_spoiler_free: true,
   result_order: index + 1,
   is_on_jury: true,
 }))
@@ -88,6 +89,58 @@ test("results are omitted unless explicitly requested in either layout", () => {
     assert.doesNotMatch(textWithout, /Jury member|INCLUDES SEASON RESULTS/i)
     assert.match(textWith, /Jury member/)
     assert.match(textWith, /INCLUDES SEASON RESULTS/)
+  }
+})
+
+test("outcome-ordered input is alphabetized without changing names or photo associations", () => {
+  const people = [
+    { name: "Zoë Example", image_url: "/cast/zoe.jpg", result_order: 1 },
+    { name: "Brady Example", image_url: "/cast/brady.jpg", result_order: 2 },
+    { name: "Ana Example", image_url: "/cast/ana.jpg", result_order: 3 },
+  ]
+  const ordered = sortCastawaysAlphabetically(people)
+  assert.deepEqual(ordered.map((person) => person.name), ["Ana Example", "Brady Example", "Zoë Example"])
+  assert.equal(people[0].name, "Zoë Example", "sorting does not mutate input data")
+  for (const layout of ["grid", "details"]) {
+    const result = measureCastawayImage({ season, castaways: people, layout, measure })
+    assert.deepEqual(result.orderedCastaways.map((person) => person.image_url), ["/cast/ana.jpg", "/cast/brady.jpg", "/cast/zoe.jpg"])
+    const photos = result.operations.filter((operation) => operation.type === "photo")
+    for (const photo of photos) {
+      const person = result.orderedCastaways[photo.index]
+      const nextText = result.operations.slice(result.operations.indexOf(photo) + 1).find((operation) => operation.type === "text")
+      assert.equal(nextText.lines.join(" "), person.name)
+    }
+  }
+})
+
+test("spoiler-free exports are identical when results, narratives, tribe assignments, and input order change", () => {
+  const people = [
+    { name: "Ana Example", age: 32, occupation: "Teacher", hometown: "Boston", image_url: "/cast/ana.jpg" },
+    { name: "Zoë Example", age: 27, occupation: "Chef", hometown: "Austin", image_url: "/cast/zoe.jpg" },
+  ]
+  const withOutcomes = people.map((person, index) => ({
+    ...person,
+    result_order: index + 1,
+    is_on_jury: true,
+    tribe: "Merged Tribe",
+    traits: ["Sole Survivor"],
+    summary: "Won the final vote.",
+    bio: "Reached the finale.",
+    why_applied: "An unverified retrospective answer.",
+    life_experience: "Won a previous season.",
+    unique_gameplay: "Played the decisive idol at final five.",
+  })).reverse()
+  for (const layout of ["grid", "details"]) {
+    const before = measureCastawayImage({ season, castaways: people, layout, measure })
+    const after = measureCastawayImage({ season, castaways: withOutcomes, layout, measure })
+    assert.deepEqual(after.operations, before.operations)
+    assert.deepEqual(after.cards, before.cards)
+    assert.equal(after.height, before.height)
+    const revealed = measureCastawayImage({ season, castaways: withOutcomes, layout, measure, showSpoilers: true })
+    const revealedText = revealed.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+    assert.match(revealedText, /Merged Tribe/)
+    assert.match(revealedText, /Jury member/)
+    if (layout === "details") assert.match(revealedText, /Won the final vote/)
   }
 })
 

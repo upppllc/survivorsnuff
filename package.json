@@ -6,7 +6,8 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+    "test": "node --test src/lib/*.test.js src/lib/client/*.test.js"
   },
   "devDependencies": {
     "@sveltejs/adapter-vercel": "^6.3.4",
