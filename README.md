@@ -90,10 +90,15 @@ running its preview. Keep unannounced facts and results unset.
 
 ## Cast sheet exports
 
-On a season page, choose **Grid** or **Details**, then **Preview image**. Review
-the scrollable preview and choose **Save PNG** to download, **Zoom preview**
-for a closer look, **Fit preview** to see the full width, or **Close preview**. Generating a preview
-does not download anything. Grid PNGs
+On a season page, choose **Grid** or **Details**, then **Preview image**. On
+supported phones, choose **Save or share photo** to open the native share sheet;
+on iPhone, choose **Save Image** there to add the PNG to Photos. Cancelling the
+share sheet keeps the preview open and does not start a download. If file
+sharing is unavailable, touch and hold the preview image for photo options.
+**Download PNG** remains available to save a file in any browser.
+
+Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
+or **Close preview**. Generating a preview does not download anything. Grid PNGs
 always use three columns; detailed PNGs use one castaway per row and expand to
 fit available information. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
