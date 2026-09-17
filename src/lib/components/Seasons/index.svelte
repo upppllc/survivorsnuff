@@ -1,5 +1,5 @@
 <script>
-  import { Button } from "sveltekit-ui"
+  import { Button, Icon } from "sveltekit-ui"
   let { manager } = $props()
 </script>
 
@@ -14,7 +14,7 @@
             <div class="season-copy"><h2>Survivor {season.season_number}</h2>
               {#if season.date_label}<p class="date">{season.premiere_label} {season.date_label}</p>{/if}
             </div>
-            <span class="arrow" aria-hidden="true">↗</span>
+            <div class="arrow" aria-hidden="true"><Icon manager={season.visit_icon_manager} /></div>
           </div>
         {/snippet}
       </Button>
@@ -34,6 +34,6 @@
   .season-number { font-size: 4rem; font-weight: 750; letter-spacing: -.06em; color: var(--snuff-accent); min-width: 5.6rem; }
   h2 { font-size: 2.24rem; margin: 0; letter-spacing: -.02em; }
   .date { font-size: 1.36rem; color: var(--snuff-muted); margin: .8rem 0 0; }
-  .arrow { margin-left: auto; font-size: 2.4rem; }
+  .arrow { display: flex; flex-shrink: 0; margin-left: auto; }
   @media(max-width: 500px) { .season { padding: 1.6rem; gap: 1.6rem; } .archive { padding: 4rem 1.6rem; } }
 </style>

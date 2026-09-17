@@ -77,6 +77,12 @@ The importer never edits or deletes existing records. Re-running it skips
 records already present. Photo files are deployed with the site; the current
 Contibase castaway table has no photo columns.
 
+Reviewed preseason profile summaries live in `src/lib/data/season-51-profiles.js`.
+They appear in both cast views and image exports without enabling spoilers.
+Only this versioned source can supply spoiler-free narratives; backend bios
+and arbitrary trust flags cannot bypass the spoiler gate. The current backend
+has no summary column, so these profiles remain in the repository.
+
 For a future season, add a verified data module and official photos, retain
 source URLs and credits, then update `LATEST_SEASON` and the baseline import in
 `src/lib/server/seasons.js`. Adapt the additive importer to that season before
@@ -84,7 +90,10 @@ running its preview. Keep unannounced facts and results unset.
 
 ## Cast sheet exports
 
-On a season page, choose **Grid** or **Details**, then **Save image**. Grid PNGs
+On a season page, choose **Grid** or **Details**, then **Preview image**. Review
+the scrollable preview and choose **Save PNG** to download, **Zoom preview**
+for a closer look, **Fit preview** to see the full width, or **Close preview**. Generating a preview
+does not download anything. Grid PNGs
 always use three columns; detailed PNGs use one castaway per row and expand to
 fit available information. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
@@ -99,4 +108,4 @@ Images are rendered locally in the browser, independently of the page's scroll
 position or screen size. Current photos load from the site; archive photos use
 the same-origin Contibase storage proxy. A failed photo produces an error so
 the downloaded guide does not silently omit a castaway's picture. The generated
-PNG can also be previewed or opened from the download confirmation.
+PNG remains available until the preview is closed or its settings change.

@@ -1,4 +1,4 @@
-import { create_button_manager } from "sveltekit-ui"
+import { create_button_manager, create_icon_manager } from "sveltekit-ui"
 import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
 
 export function create_seasons_manager(config) {
@@ -10,6 +10,13 @@ export function create_seasons_manager(config) {
         season_number: season.season_number,
         date_label: formatSeasonDate(season.first_air_time),
         premiere_label: seasonDateTimestamp(season.first_air_time) > Date.now() ? "Premieres" : "Premiered",
+        visit_icon_manager: create_icon_manager({
+          icon_id: "arrow_tailed",
+          deg: -45,
+          size: 2,
+          sw: 45,
+          color: "var(--snuff-text)",
+        }),
         visit_button_manager: create_button_manager({
           href: `/seasons/${season.season_number}`,
           aria_label: `Visit Survivor ${season.season_number}`,

@@ -66,8 +66,10 @@ function fieldsFor(castaway, layout, showSpoilers) {
   if (layout === "details") {
     add("Current residence", castaway.current_residence)
     add("Traits", profile.traits)
-    const labels = { summary: "About", why_applied: "Why they applied", life_experience: "Life experience", unique_gameplay: "Their game" }
+    const labels = { preseason: "Before the island", summary: "About", why_applied: "Why they applied", life_experience: "Life experience", unique_gameplay: "Their game" }
     for (const bio of profile.bios) add(labels[bio.key], bio.value)
+  } else {
+    add("Before the island", profile.bios.find((bio) => bio.key === "preseason")?.value)
   }
   add("Tribe", profile.tribe)
   if (showSpoilers && Number.isInteger(castaway.result_order)) {

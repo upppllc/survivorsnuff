@@ -1,13 +1,14 @@
 import { create_button_manager, create_checkbox_manager, create_text_input_manager } from "sveltekit-ui"
-import { untrack } from "svelte"
+import { tick, untrack } from "svelte"
 import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "$lib/castaways.js"
 import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
 
 export function create_season_manager(config) {
   let castaway_view = $state("grid")
-  let is_saving = $state(false)
+  let is_generating = $state(false)
   let export_error = $state("")
   let saved_image = $state(null)
+  let is_preview_zoomed = $state(false)
   let failed_photos = $state({})
   let full_data = $state.raw(null)
   let spoilers_loading = $state(false)
@@ -16,6 +17,7 @@ export function create_season_manager(config) {
   let export_revision = 0
   let spoilers_revision = 0
   let spoilers_request = null
+  const preview_id = `cast-sheet-preview-${config?.season?.season_number}`
 
   const search_text_input_manager = create_text_input_manager({
     type: "search",
@@ -63,6 +65,7 @@ export function create_season_manager(config) {
         { label: "Three words", value: Array.isArray(profile.traits) ? profile.traits.join(", ") : profile.traits },
       ].filter((fact) => fact.value),
       bios: profile.bios,
+      preseason_summary: profile.bios.find((bio) => bio.key === "preseason")?.value,
       get photo_failed() { return Boolean(failed_photos[photo_key]) },
       handle_photo_error: () => { failed_photos[photo_key] = true },
     }
@@ -131,14 +134,45 @@ export function create_season_manager(config) {
     is_compressed: true,
     on_click: () => set_castaway_view("details"),
   })
-  const save_image_button_manager = create_button_manager({
-    text: () => is_saving ? "Creating image…" : "Save image",
-    aria_label: () => is_saving ? "Creating cast image" : "Save image",
-    is_loading: () => is_saving,
+  const preview_image_button_manager = create_button_manager({
+    text: () => is_generating ? "Creating preview…" : "Preview image",
+    aria_label: () => is_generating ? "Creating cast image preview" : "Preview image",
+    support_icon: "photo",
+    icon_pos: "left",
+    is_loading: () => is_generating,
     is_disabled: () => !filtered_castaways.length || spoilers_loading,
     is_compressed: true,
     is_no_wrap: true,
-    on_click: save_image,
+    on_click: preview_image,
+  })
+  const save_png_button_manager = create_button_manager({
+    text: "Save PNG",
+    support_icon: "download",
+    icon_pos: "left",
+    is_disabled: () => !saved_image,
+    is_compressed: true,
+    on_click: save_png,
+  })
+  const zoom_preview_button_manager = create_button_manager({
+    type: "outlined",
+    text: () => is_preview_zoomed ? "Fit preview" : "Zoom preview",
+    support_icon: "resize",
+    icon_pos: "left",
+    aria_label: () => is_preview_zoomed ? "Fit preview" : "Zoom preview",
+    is_disabled: () => !saved_image,
+    is_compressed: true,
+    on_click: () => { is_preview_zoomed = !is_preview_zoomed },
+  })
+  const close_preview_button_manager = create_button_manager({
+    type: "plain",
+    text: "Close preview",
+    support_icon: "x",
+    icon_pos: "left",
+    is_compressed: true,
+    on_click: () => {
+      invalidate_saved_image()
+      preview_image_button_manager.focus()
+    },
   })
   const clear_search_button_manager = create_button_manager({
     type: "outlined",
@@ -146,11 +180,12 @@ export function create_season_manager(config) {
     is_compressed: true,
     on_click: () => search_text_input_manager.set_val(""),
   })
-  const export_hint = $derived(`Castaways are listed alphabetically by name. Save the ${castaway_view === "grid" ? "three-column grid" : "full details, one person per row"} as a PNG.${search_query ? ` Includes the ${filtered_castaways.length} matching castaways.` : ""}`)
+  const export_hint = $derived(`Castaways are listed alphabetically by name. Preview the ${castaway_view === "grid" ? "three-column grid" : "full details, one person per row"}, then save it as a PNG.${search_query ? ` Includes the ${filtered_castaways.length} matching castaways.` : ""}`)
 
   function invalidate_saved_image() {
     export_revision++
     export_error = ""
+    is_preview_zoomed = false
     if (saved_image) {
       URL.revokeObjectURL(saved_image.url)
       saved_image = null
@@ -207,10 +242,10 @@ export function create_season_manager(config) {
     void load_spoilers(Boolean(value))
   }
 
-  async function save_image() {
-    if (disposed || is_saving || spoilers_loading || !filtered_castaways.length) return
-    is_saving = true
-    export_error = ""
+  async function preview_image() {
+    if (disposed || is_generating || spoilers_loading || !filtered_castaways.length) return
+    invalidate_saved_image()
+    is_generating = true
     const revision = export_revision
     const selection = {
       season,
@@ -222,19 +257,36 @@ export function create_season_manager(config) {
       const { createCastawayImage } = await import("$lib/client/castaway-export.js")
       const result = await createCastawayImage(selection)
       if (disposed || revision !== export_revision) return
-      if (saved_image) URL.revokeObjectURL(saved_image.url)
-      saved_image = { ...result, url: URL.createObjectURL(result.blob) }
-      const link = document.createElement("a")
-      link.href = saved_image.url
-      link.download = result.filename
-      document.body.append(link)
-      link.click()
-      link.remove()
+      saved_image = {
+        ...result,
+        url: URL.createObjectURL(result.blob),
+        description: `${selection.castaways.length} castaways · ${selection.layout === "grid" ? "Three-column grid" : "One person per row"} · ${result.width} × ${result.height} px`,
+        alt: `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in ${selection.layout === "grid" ? "a three-column grid" : "detailed rows"}`,
+        includes_spoilers: selection.showSpoilers,
+      }
+      await tick()
+      if (!disposed && revision === export_revision) {
+        const preview = document.getElementById(preview_id)
+        preview?.focus({ preventScroll: true })
+        preview?.scrollIntoView({ block: "nearest" })
+      }
     } catch (error) {
-      if (!disposed && revision === export_revision) export_error = error instanceof Error ? error.message : "The image could not be saved. Please try again."
+      if (!disposed && revision === export_revision) export_error = error instanceof Error ? error.message : "The image preview could not be created. Please try again."
     } finally {
-      is_saving = false
+      is_generating = false
     }
+  }
+
+  function save_png() {
+    if (disposed || !saved_image) return
+    // The package's public href API excludes blob URLs. Keep its native Button
+    // controls and activate this local object URL only after an explicit click.
+    const link = document.createElement("a")
+    link.href = saved_image.url
+    link.download = saved_image.filename
+    document.body.append(link)
+    link.click()
+    link.remove()
   }
 
   function dispose() {
@@ -257,19 +309,24 @@ export function create_season_manager(config) {
     view_seasons_button_manager,
     grid_button_manager,
     details_button_manager,
-    save_image_button_manager,
+    preview_image_button_manager,
+    save_png_button_manager,
+    zoom_preview_button_manager,
+    close_preview_button_manager,
+    preview_id,
     clear_search_button_manager,
     get search() { return search },
     get filtered_castaways() { return filtered_castaways },
-    get is_saving() { return is_saving },
+    get is_generating() { return is_generating },
     get export_error() { return export_error },
     get saved_image() { return saved_image },
+    get is_preview_zoomed() { return is_preview_zoomed },
     get export_hint() { return export_hint },
     get is_show_spoilers() { return is_show_spoilers },
     set is_show_spoilers(value) { set_show_spoilers(value) },
     get castaway_view() { return castaway_view },
     set castaway_view(value) { set_castaway_view(value) },
-    save_image,
+    preview_image,
     dispose,
   }
 }

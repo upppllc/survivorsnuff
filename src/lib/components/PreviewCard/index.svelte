@@ -1,52 +1,41 @@
 <script>
-  import { Icon, create_icon_manager } from "sveltekit-ui"
+  import { Icon } from "sveltekit-ui"
+  import { create_preview_card_manager } from "./index.svelte.js"
 
   let { page, goto_path } = $props()
-  let failedImage = $state(null)
-  const imageSource = $derived(page?.main_image?.attributes?.storage_id
-    ? `/api/storage/${encodeURIComponent(page.main_image.attributes.storage_id)}`
-    : null)
-  const title = $derived(page?.title?.attributes?.content ?? "Episode details")
-  const clockIconManager = create_icon_manager({
-    icon_id: "clock",
-    sw: 50,
-    size: 1.4,
-    mr: 0.2,
-    mt: 0.1,
-    color: "var(--g4-t)",
-  })
+  const manager = create_preview_card_manager({ page: () => page, goto_path: () => goto_path })
 </script>
 
-<a class="container" href={goto_path ?? `/pages/${encodeURIComponent(page?.id ?? "")}`}>
+<a class="container" href={manager.href}>
   <div class="card_container">
-    {#if imageSource}
+    {#if manager.image_source}
       <div class="image_container">
-        {#if failedImage === imageSource}
+        {#if manager.image_failed}
           <div class="image_fallback">Image unavailable</div>
         {:else}
           <img
             class="image"
-            alt={page?.main_image?.attributes?.alt ?? title}
-            src={imageSource}
+            alt={manager.image_alt}
+            src={manager.image_source}
             loading="lazy"
             decoding="async"
-            onerror={() => (failedImage = imageSource)}
+            onerror={manager.handle_image_error}
           />
         {/if}
       </div>
     {/if}
-    <h3 class="title">{title}</h3>
-    {#if page?.description?.attributes?.content}
-      <p class="description">{page.description.attributes.content}</p>
+    <h3 class="title">{manager.title}</h3>
+    {#if manager.description}
+      <p class="description">{manager.description}</p>
     {/if}
     <div class="footer">
-      {#if page?.derived_view_time_mins > 0}
+      {#if manager.read_minutes > 0}
         <div class="readtime">
-          <Icon manager={clockIconManager} />
-          {page.derived_view_time_mins} min read
+          <Icon manager={manager.clock_icon_manager} />
+          {manager.read_minutes} min read
         </div>
       {/if}
-      <span class="view-label" aria-hidden="true">View →</span>
+      <div class="view-label" aria-hidden="true">View <Icon manager={manager.view_icon_manager} /></div>
     </div>
   </div>
 </a>
@@ -137,6 +126,9 @@
     flex-wrap: wrap;
   }
   .view-label {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
     margin-left: auto;
     font-weight: 600;
   }

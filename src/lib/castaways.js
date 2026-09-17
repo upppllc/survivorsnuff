@@ -1,3 +1,5 @@
+import { season51Profiles } from "./data/season-51-profiles.js"
+
 const nameOrder = new Intl.Collator("en", { sensitivity: "base", numeric: true })
 
 /** A neutral cast order that never depends on placement, survival, or jury status. */
@@ -10,18 +12,25 @@ export function sortCastawaysAlphabetically(castaways = []) {
   })
 }
 
-/** Unverified archive narratives and tribe assignments may describe later events. */
+/** Only the reviewed, versioned preseason profiles bypass the spoiler gate. */
 export function castawayProfileDetails(castaway, showSpoilers = false) {
-  const includeNarrative = showSpoilers === true || castaway?.profile_spoiler_free === true
-  return {
-    traits: includeNarrative ? castaway?.traits : null,
-    tribe: includeNarrative ? castaway?.tribe?.name ?? castaway?.tribe_name ?? castaway?.tribe : null,
-    bios: includeNarrative ? [
+  const includeNarrative = showSpoilers === true
+  const preseason = Number(castaway?.season_number) === 51 && Object.hasOwn(season51Profiles, castaway?.name)
+    ? season51Profiles[castaway.name]
+    : null
+  const bios = preseason ? [{ key: "preseason", label: "Before the island", value: preseason.summary }] : []
+  if (includeNarrative) {
+    bios.push(...[
       { key: "summary", label: "About", value: castaway?.summary ?? castaway?.bio },
       { key: "why_applied", label: "Why Survivor", value: castaway?.why_applied },
       { key: "life_experience", label: "Life experience", value: castaway?.life_experience },
       { key: "unique_gameplay", label: "Game plan", value: castaway?.unique_gameplay },
-    ].filter((bio) => bio.value) : [],
+    ].filter((bio) => bio.value && bio.value !== preseason?.summary))
+  }
+  return {
+    traits: includeNarrative ? castaway?.traits : null,
+    tribe: includeNarrative ? castaway?.tribe?.name ?? castaway?.tribe_name ?? castaway?.tribe : null,
+    bios,
   }
 }
 

@@ -10,7 +10,7 @@
     <div class="hero-copy">
       <p class="eyebrow"><span></span> {manager.season_label}</p>
       <h1>New faces.<br />Same obsession.</h1>
-      <p class="hero-description">Meet all {manager.castaway_count} castaways.<br class="desktop-break" /> Photos, hometowns, and a cast sheet to save.</p>
+      <p class="hero-description">Meet all {manager.castaway_count} castaways.<br class="desktop-break" /> Photos, hometowns, and a cast sheet to preview and save.</p>
       <div class="hero-actions"><Button manager={manager.meet_cast_button_manager} /><Button manager={manager.explore_seasons_button_manager} /></div>
       <p class="premiere"><strong>SEPT 23</strong><span>Season premiere · 8 ET/PT on CBS</span></p>
     </div>
@@ -21,7 +21,7 @@
       <div class="season-panel-footer"><span>{manager.castaway_count} NEW CASTAWAYS</span><span>FIJI</span></div>
     </div>
   </header>
-  <div class="quick-note"><span class="note-icon">↙</span><p>Your premiere-night cheat sheet. <span>Switch between a photo grid and detailed profiles, then save either as an image.</span></p><span class="note-tag">FREE TO SAVE</span></div>
+  <div class="quick-note"><p>Your premiere-night cheat sheet. <span>Choose a photo grid or detailed profiles, preview your cast sheet, then save it as an image.</span></p><span class="note-tag">FREE TO SAVE</span></div>
   <Season manager={manager.season_manager} featured />
   <aside class="archive-callout"><div><p class="eyebrow">A FEW FAMILIAR FACES</p><h2>Every season has a story.</h2><p>Find the castaways from seasons past.</p></div><Button manager={manager.browse_archive_button_manager} /></aside>
 </div>
@@ -49,7 +49,6 @@
   .quick-note { display: flex; gap: 1.6rem; align-items: center; padding: 1.76rem 2.24rem; margin: 0.8rem 0 5.6rem; border-radius: 1.2rem; border: 1px solid var(--snuff-border); background: var(--snuff-surface); }
   .quick-note p { color: var(--snuff-text); margin: 0; font-size: 1.44rem; font-weight: 650; line-height: 1.5; }
   .quick-note p span { font-size: inherit; line-height: inherit; color: var(--snuff-muted); font-weight: 400; }
-  .note-icon { color: var(--snuff-text); line-height: 1.5; font-size: 2.4rem; }
   .note-tag { line-height: 1.5; margin-left: auto; white-space: nowrap; font-size: 0.96rem; font-weight: 750; letter-spacing: .1em; color: var(--snuff-muted); }
   .archive-callout { margin-top: 6.4rem; padding: 3.2rem 0; border-top: 1px solid var(--snuff-border); display: flex; align-items: center; justify-content: space-between; gap: 2.4rem; }
   .archive-callout .eyebrow { margin-bottom: 0.96rem; }
