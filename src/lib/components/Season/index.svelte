@@ -50,11 +50,18 @@
             <div><h3>Cast sheet preview</h3><p class="preview-description">{manager.saved_image.description}</p></div>
             <Button manager={manager.close_preview_button_manager} />
           </div>
-          <p class="preview-instructions">Scroll to review the image, or zoom in for a closer look. Save your PNG when ready.{manager.saved_image.includes_spoilers ? " This image includes spoilers." : ""}</p>
+          <p class="preview-instructions">Scroll to review the image, or zoom in for a closer look.{manager.saved_image.includes_spoilers ? " This image includes spoilers." : ""}</p>
+          {#if manager.saved_image.share_file}
+            <p class="preview-instructions">On iPhone, tap Save or share photo, then choose Save Image to add it to Photos.</p>
+          {:else}
+            <p class="preview-instructions">On a phone, touch and hold the image for photo options. Download PNG saves a file.</p>
+          {/if}
           <div class="export-actions">
+            {#if manager.saved_image.share_file}<Button manager={manager.share_photo_button_manager} />{/if}
             <Button manager={manager.save_png_button_manager} />
             <Button manager={manager.zoom_preview_button_manager} />
           </div>
+          {#if manager.share_error}<p class="export-error" role="alert">{manager.share_error}</p>{/if}
           <!-- svelte-ignore a11y_no_noninteractive_tabindex (The scrollable image region needs keyboard focus for scrolling.) -->
           <div id={manager.preview_id} class="export-preview-scroll" role="region" aria-label="Scrollable cast sheet image" tabindex="0">
             <img src={manager.saved_image.url} alt={manager.saved_image.alt} width={manager.saved_image.width} height={manager.saved_image.height} class="export-preview" class:preview-zoomed={manager.is_preview_zoomed} />
@@ -157,7 +164,7 @@
   .preview-instructions { margin: 1.2rem 0; }
   .export-actions { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-bottom: 1.6rem; }
   .export-preview-scroll { max-height: min(70vh, 76rem); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--snuff-border); border-radius: 0.6rem; background: var(--snuff-card); scroll-margin-top: 2rem; }
-  .export-preview { display: block; width: 100%; height: auto; }
+  .export-preview { display: block; width: 100%; height: auto; -webkit-touch-callout: default; user-select: auto; }
   .export-preview.preview-zoomed { width: 160%; min-width: 112rem; max-width: none; }
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
   .cast-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4rem; }

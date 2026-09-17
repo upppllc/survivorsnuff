@@ -2,6 +2,7 @@ import { create_button_manager, create_checkbox_manager, create_text_input_manag
 import { tick, untrack } from "svelte"
 import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "$lib/castaways.js"
 import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
+import { prepareCastawayShareFile, shareCastawayFile } from "$lib/client/castaway-share.js"
 
 export function create_season_manager(config) {
   let castaway_view = $state("grid")
@@ -9,6 +10,8 @@ export function create_season_manager(config) {
   let export_error = $state("")
   let saved_image = $state(null)
   let is_preview_zoomed = $state(false)
+  let is_sharing = $state(false)
+  let share_error = $state("")
   let failed_photos = $state({})
   let full_data = $state.raw(null)
   let spoilers_loading = $state(false)
@@ -145,8 +148,18 @@ export function create_season_manager(config) {
     is_no_wrap: true,
     on_click: preview_image,
   })
+  const share_photo_button_manager = create_button_manager({
+    text: "Save or share photo",
+    support_icon: "share",
+    icon_pos: "left",
+    is_loading: () => is_sharing,
+    is_disabled: () => !saved_image?.share_file,
+    is_compressed: true,
+    on_click: share_photo,
+  })
   const save_png_button_manager = create_button_manager({
-    text: "Save PNG",
+    type: () => saved_image?.share_file ? "outlined" : "primary",
+    text: "Download PNG",
     support_icon: "download",
     icon_pos: "left",
     is_disabled: () => !saved_image,
@@ -186,6 +199,8 @@ export function create_season_manager(config) {
     export_revision++
     export_error = ""
     is_preview_zoomed = false
+    is_sharing = false
+    share_error = ""
     if (saved_image) {
       URL.revokeObjectURL(saved_image.url)
       saved_image = null
@@ -259,6 +274,7 @@ export function create_season_manager(config) {
       if (disposed || revision !== export_revision) return
       saved_image = {
         ...result,
+        share_file: prepareCastawayShareFile(result),
         url: URL.createObjectURL(result.blob),
         description: `${selection.castaways.length} castaways · ${selection.layout === "grid" ? "Three-column grid" : "One person per row"} · ${result.width} × ${result.height} px`,
         alt: `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in ${selection.layout === "grid" ? "a three-column grid" : "detailed rows"}`,
@@ -274,6 +290,21 @@ export function create_season_manager(config) {
       if (!disposed && revision === export_revision) export_error = error instanceof Error ? error.message : "The image preview could not be created. Please try again."
     } finally {
       is_generating = false
+    }
+  }
+
+  async function share_photo() {
+    if (disposed || is_sharing || !saved_image?.share_file) return
+    const revision = export_revision
+    const file = saved_image.share_file
+    is_sharing = true
+    share_error = ""
+    // The PNG is ready already. Invoke share in this tap, before any other await.
+    const result = await shareCastawayFile(file)
+    if (disposed || revision !== export_revision) return
+    is_sharing = false
+    if (result === "failed" || result === "unavailable") {
+      share_error = "The photo share sheet could not open. Touch and hold the preview image for photo options, or use Download PNG."
     }
   }
 
@@ -310,6 +341,7 @@ export function create_season_manager(config) {
     grid_button_manager,
     details_button_manager,
     preview_image_button_manager,
+    share_photo_button_manager,
     save_png_button_manager,
     zoom_preview_button_manager,
     close_preview_button_manager,
@@ -319,6 +351,7 @@ export function create_season_manager(config) {
     get filtered_castaways() { return filtered_castaways },
     get is_generating() { return is_generating },
     get export_error() { return export_error },
+    get share_error() { return share_error },
     get saved_image() { return saved_image },
     get is_preview_zoomed() { return is_preview_zoomed },
     get export_hint() { return export_hint },
