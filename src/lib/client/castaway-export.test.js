@@ -16,7 +16,6 @@ const castaways = Array.from({ length: 18 }, (_, index) => ({
   life_experience: "I have learned to listen carefully and stay patient.",
   unique_gameplay: "Build strong relationships and keep my options open.",
   summary: "An enthusiastic new castaway.",
-  profile_spoiler_free: true,
   result_order: index + 1,
   is_on_jury: true,
 }))
@@ -56,7 +55,7 @@ test("long detailed biographies grow the rows and never overlap following castaw
     name: index === 0 ? "A very long name with several family names and a long nickname" : castaway.name,
     life_experience: `${longBio}\n\nA final paragraph that must remain visible.`,
   }))
-  const result = measureCastawayImage({ season, castaways: people, layout: "details", measure })
+  const result = measureCastawayImage({ season, castaways: people, layout: "details", measure, showSpoilers: true })
   assert.equal(new Set(result.cards.map((card) => card.x)).size, 1)
   assert.equal(result.cards.length, people.length)
   for (let index = 0; index < result.cards.length; index++) {
@@ -129,6 +128,7 @@ test("spoiler-free exports are identical when results, narratives, tribe assignm
     why_applied: "An unverified retrospective answer.",
     life_experience: "Won a previous season.",
     unique_gameplay: "Played the decisive idol at final five.",
+    profile_spoiler_free: true,
   })).reverse()
   for (const layout of ["grid", "details"]) {
     const before = measureCastawayImage({ season, castaways: people, layout, measure })

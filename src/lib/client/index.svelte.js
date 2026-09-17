@@ -17,6 +17,6 @@ export function create_global_manager() {
     main_nav_manager,
     footer_home_button_manager: create_button_manager({ ...footer_button_config, text: "Survivor Snuff", href: "/", font_size: 1.7, font_weight: 750, pl: 0, pr: 0 }),
     footer_archive_button_manager: create_button_manager({ ...footer_button_config, text: "Season archive", href: "/seasons" }),
-    footer_follow_button_manager: create_button_manager({ ...footer_button_config, text: "Follow on X ↗", href: "https://x.com/SurvivorSnuff", target: "_blank" }),
+    footer_follow_button_manager: create_button_manager({ ...footer_button_config, text: "Follow on X", href: "https://x.com/SurvivorSnuff", target: "_blank", support_icon: "arrow_tailed", icon_deg: -45, icon_size: 1.4 }),
   }
 }

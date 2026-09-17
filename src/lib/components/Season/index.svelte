@@ -37,18 +37,29 @@
           <Button manager={manager.grid_button_manager} />
           <Button manager={manager.details_button_manager} />
         </div>
-        <Button manager={manager.save_image_button_manager} />
+        <Button manager={manager.preview_image_button_manager} />
       </div>
     </div>
     <p class="export-hint">{manager.export_hint}</p>
     <div aria-live="polite">
       {#if manager.spoilers_loading}<p class="export-hint" role="status">Loading spoilers… You can turn the option off to keep them hidden.</p>{/if}
-      {#if manager.export_error}<p class="export-error" role="alert">{manager.export_error} Try saving again.</p>{/if}
+      {#if manager.export_error}<p class="export-error" role="alert">{manager.export_error} Try creating the preview again.</p>{/if}
       {#if manager.saved_image}
-        <div class="export-ready">
-          <div><strong>Your cast sheet is ready.</strong> <a href={manager.saved_image.url} download={manager.saved_image.filename}>Download PNG</a> · <a href={manager.saved_image.url} target="_blank" rel="noopener">Open image</a></div>
-          <details><summary>Preview cast sheet</summary><img src={manager.saved_image.url} alt="Generated Survivor cast sheet" class="export-preview" /></details>
-        </div>
+        <section class="export-ready" aria-label="Cast sheet preview">
+          <div class="export-header">
+            <div><h3>Cast sheet preview</h3><p class="preview-description">{manager.saved_image.description}</p></div>
+            <Button manager={manager.close_preview_button_manager} />
+          </div>
+          <p class="preview-instructions">Scroll to review the image, or zoom in for a closer look. Save your PNG when ready.{manager.saved_image.includes_spoilers ? " This image includes spoilers." : ""}</p>
+          <div class="export-actions">
+            <Button manager={manager.save_png_button_manager} />
+            <Button manager={manager.zoom_preview_button_manager} />
+          </div>
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex (The scrollable image region needs keyboard focus for scrolling.) -->
+          <div id={manager.preview_id} class="export-preview-scroll" role="region" aria-label="Scrollable cast sheet image" tabindex="0">
+            <img src={manager.saved_image.url} alt={manager.saved_image.alt} width={manager.saved_image.width} height={manager.saved_image.height} class="export-preview" class:preview-zoomed={manager.is_preview_zoomed} />
+          </div>
+        </section>
       {/if}
     </div>
 
@@ -71,6 +82,7 @@
               {#if person.occupation}<p class="occupation">{person.occupation}</p>{/if}
               {#if manager.castaway_view === "grid"}
                 {#if person.hometown}<p class="hometown">{person.hometown}</p>{/if}
+                {#if person.preseason_summary}<p class="preseason-summary">{person.preseason_summary}</p>{/if}
               {:else}
                 <dl class="person-facts">
                   {#each person.facts as fact}<div><dt>{fact.label}</dt><dd>{fact.value}</dd></div>{/each}
@@ -135,14 +147,18 @@
   .cast-toolbar { justify-content: space-between; }
   .search { max-width: 38.4rem; min-width: 0; flex: 1; }
   .view-toggle { display: flex; gap: 0.56rem; }
-  a:focus-visible, summary:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }
+  a:focus-visible, .export-preview-scroll:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }
   .spoilers { display: flex; align-items: center; gap: 0.8rem; font-size: 1.44rem; }
   .spoilers label { cursor: pointer; }
   .export-hint { color: var(--snuff-muted); font-size: 1.36rem; margin: 1.44rem 0 2.88rem; line-height: 1.5; }
   .export-ready { padding: 1.6rem 2rem; background: var(--snuff-surface); border: 1px solid var(--snuff-border); border-radius: 1.2rem; margin: 0 0 2.4rem; font-size: 1.52rem; }
-  .export-ready details { margin-top: 0.96rem; }
-  .export-ready summary { cursor: pointer; }
-  .export-preview { display: block; max-width: 100%; max-height: 51.2rem; margin-top: 1.6rem; object-fit: contain; object-position: left top; }
+  .export-header { display: flex; align-items: start; justify-content: space-between; gap: 1.6rem; flex-wrap: wrap; }
+  .preview-description { color: var(--snuff-muted); margin: 0.8rem 0 0; }
+  .preview-instructions { margin: 1.2rem 0; }
+  .export-actions { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-bottom: 1.6rem; }
+  .export-preview-scroll { max-height: min(70vh, 76rem); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--snuff-border); border-radius: 0.6rem; background: var(--snuff-card); scroll-margin-top: 2rem; }
+  .export-preview { display: block; width: 100%; height: auto; }
+  .export-preview.preview-zoomed { width: 160%; min-width: 112rem; max-width: none; }
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
   .cast-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4rem; }
   .cast-card { background: var(--snuff-card); border: 1px solid var(--snuff-border); border-radius: 1.6rem; overflow: hidden; min-width: 0; }
@@ -156,6 +172,7 @@
   .age { color: var(--snuff-muted); font-size: 1.44rem; border: 1px solid var(--snuff-border); border-radius: 50%; min-width: 3.2rem; height: 3.2rem; display: grid; place-content: center; flex-shrink: 0; }
   .occupation { margin: 0.8rem 0 0; font-size: 1.568rem; font-weight: 550; line-height: 1.4; }
   .hometown { color: var(--snuff-muted); font-size: 1.408rem; margin: 0.56rem 0 0; line-height: 1.45; }
+  .preseason-summary { color: var(--snuff-muted); font-size: 1.36rem; margin: 0.96rem 0 0; line-height: 1.5; }
   .cast-details { display: grid; gap: 2rem; }
   .cast-details .cast-card { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
   .cast-details .portrait-wrap { aspect-ratio: auto; min-height: 250px; height: 100%; }
