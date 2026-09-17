@@ -1,33 +1,9 @@
 <script>
-  import { Button, Image, Spacer, Time, Qr, Content, Icon, Location } from "sveltekit-ui"
+  import { Button, Qr, Content } from "sveltekit-ui"
 
   let { manager } = $props()
 </script>
 
-<!-- <h1 style="color: var(--primary-t);">
-  {manager?.post?.title?.attributes?.content}
-</h1> -->
-<!-- <div class="times">
-  {#if manager?.post?.time_created?.datetime}
-    <p>
-      Published: <time datetime={manager?.post?.time_created?.datetime}>{manager?.post?.time_created?.content}</time>
-    </p>
-  {/if}
-  {#if manager?.post?.time_created?.epoch && manager?.post?.time_updated?.epoch && manager?.post?.time_created?.epoch < manager?.post?.time_updated?.epoch}
-    <p>
-      Last updated on: <time datetime={manager?.post?.time_updated?.datetime}
-        >{manager?.post?.time_updated?.content}</time
-      >
-    </p>
-  {/if}
-  <div style="display: flex; align-items: center; gap: .3rem;">
-    <Icon manager={manager?.clock_icon_manager} />
-    <p>{manager?.post?.derived_view_time_mins}m</p>
-  </div>
-  {#if manager?.post?.location_relevant?.name}
-    <p>{manager?.post?.location_relevant?.name}</p>
-  {/if}
-</div> -->
 <hr />
 {#if Array.isArray(manager?.post?.derived_topic_tags) && manager?.post?.derived_topic_tags.length > 0}
   <div style="display: flex; flex-wrap: wrap; margin-bottom: 1rem;">
@@ -56,10 +32,10 @@
   <Qr manager={manager?.share_qr_manager} />
   <div style="display: flex; flex-direction: column; justify-content: space-between; flex: 1; margin: .5rem;">
     <div>
-      <h3>Share Post</h3>
-      <p style="word-break: break-all;">
-        https://www.sharktankupdate.com/seasons/{manager?.season_number}/{manager?.episode_number}
-      </p>
+      <h2>Share episode</h2>
+      <a class="share-link" href={`/seasons/${manager?.season_number}/${manager?.episode_number}`}>
+        https://www.survivorsnuff.com/seasons/{manager?.season_number}/{manager?.episode_number}
+      </a>
       <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0;">
         <Button manager={manager?.copy_link_button_manager} />
         <Button manager={manager?.share_button_manager} />
@@ -80,17 +56,8 @@
     gap: 1rem;
     margin-top: 1rem;
   }
-  .times {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 1rem 0;
-  }
-  .times p {
-    margin-right: 2rem;
-    color: var(--g8-t);
-  }
-  .times time {
-    color: var(--g8-t);
+  .share-link {
+    overflow-wrap: anywhere;
   }
   .tag {
     border-radius: 1rem;

@@ -1,12 +1,13 @@
 <script>
-  import { Button, create_button_manager, Icon, create_icon_manager, LoadingWheel } from "sveltekit-ui"
-  import { goto } from "$app/navigation"
+  import { Icon, create_icon_manager } from "sveltekit-ui"
 
   let { page, goto_path } = $props()
-
-  let is_loading_image = $state(true)
-
-  let clock_icon_manager = create_icon_manager({
+  let failedImage = $state(null)
+  const imageSource = $derived(page?.main_image?.attributes?.storage_id
+    ? `/api/storage/${encodeURIComponent(page.main_image.attributes.storage_id)}`
+    : null)
+  const title = $derived(page?.title?.attributes?.content ?? "Episode details")
+  const clockIconManager = create_icon_manager({
     icon_id: "clock",
     sw: 50,
     size: 1.4,
@@ -14,152 +15,87 @@
     mt: 0.1,
     color: "var(--g4-t)",
   })
-
-  // bg image blur not working at moment come back to tbd
-  let bg_img_style = "none"
-  // let bg_img_style = $derived(
-  //   page?.main_image?.attributes?.storage_id
-  //     ? `url(/api/v1/storage/${page?.main_image?.attributes?.storage_id}}) no-repeat center/cover`
-  //     : "none"
-  // )
-
-  // let image_manager = create_image_manager({
-  //   storage_path: "/api/v1/storage/{storage_id}",
-  //   ...page?.main_image?.attributes,
-  // })
-
-  let view_button_manager = create_button_manager({
-    type: "plain",
-    support_icon: "arrow",
-    icon_deg: 90,
-    min_height: 0,
-    mb: 0,
-    pb: 0.4,
-    pr: 0,
-    icon_sw: 80,
-    icon_size: 1.2,
-    font_weight: 600,
-    is_icon_shimmyable: true,
-    tabindex: -1,
-    text: "View",
-  })
 </script>
 
-<div
-  class="container"
-  onclick={() => goto(goto_path ?? `/pages/${page?.id}`)}
-  onkeydown={(e) => (e.key === "Enter" || e.key === " " ? goto(goto_path ?? `/pages/${page?.id}`) : null)}
-  tabindex="0"
-  role="button"
-  aria-label="Visit page"
->
-  <div
-    class="card_container"
-    style="
-      margin: 0;
-  "
-  >
-    {#if page?.main_image?.attributes?.storage_id}
-      <div class="image_container" style="--bg_img_style: {bg_img_style};">
-        {#if is_loading_image}
-          <div
-            style="position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%); z-index: -2;"
-          >
-            <LoadingWheel size={8} />
-            <p style="margin-top: 1rem;">Loading...</p>
-          </div>
-        {/if}
-        <div class="image_wrapper">
+<a class="container" href={goto_path ?? `/pages/${encodeURIComponent(page?.id ?? "")}`}>
+  <div class="card_container">
+    {#if imageSource}
+      <div class="image_container">
+        {#if failedImage === imageSource}
+          <div class="image_fallback">Image unavailable</div>
+        {:else}
           <img
             class="image"
-            alt={page?.title?.attributes?.content}
-            src={page?.main_image?.attributes?.storage_id
-              ? `/api/storage/${page?.main_image?.attributes?.storage_id}`
-              : null}
-            onload={() => (is_loading_image = false)}
+            alt={page?.main_image?.attributes?.alt ?? title}
+            src={imageSource}
+            loading="lazy"
+            decoding="async"
+            onerror={() => (failedImage = imageSource)}
           />
-        </div>
+        {/if}
       </div>
     {/if}
-    <h4 class="title">{page?.title?.attributes?.content}</h4>
+    <h3 class="title">{title}</h3>
     {#if page?.description?.attributes?.content}
-      <p class="description">
-        {page?.description?.attributes?.content}
-      </p>
+      <p class="description">{page.description.attributes.content}</p>
     {/if}
     <div class="footer">
-      <div class="readtime">
-        <Icon manager={clock_icon_manager} />
-        {page?.derived_view_time_mins}m
-      </div>
-      <Button manager={view_button_manager} />
+      {#if page?.derived_view_time_mins > 0}
+        <div class="readtime">
+          <Icon manager={clockIconManager} />
+          {page.derived_view_time_mins} min read
+        </div>
+      {/if}
+      <span class="view-label" aria-hidden="true">View →</span>
     </div>
   </div>
-</div>
+</a>
 
 <style>
   .container {
-    width: clamp(20rem, 100%, 40rem);
+    display: block;
+    width: min(100%, 40rem);
+    color: inherit;
+    text-decoration: none;
+    border-radius: 2rem;
+  }
+  .container:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
   }
   .card_container {
     padding: 1rem;
-    transition: 0.5s;
-    cursor: pointer;
+    transition: box-shadow 0.2s ease;
     border-radius: 2rem;
     overflow: hidden;
   }
-  .card_container:hover {
-    /* background-color: oklch(var(--l1-t) var(--c3) var(--h5) / var(--o2)); */
-    box-shadow:
-      0 0.4rem 1.6rem var(--shadow2),
-      inset 0 0 0 1px var(--shadow3-t);
-    -webkit-box-shadow:
-      0 0.4rem 1.6rem var(--shadow2),
-      inset 0 0 0 1px var(--shadow3-t);
+  .container:hover .card_container,
+  .container:focus-visible .card_container {
+    box-shadow: 0 0.4rem 1.6rem var(--shadow2), inset 0 0 0 1px var(--shadow3-t);
   }
-  .card_container:hover .image {
+  .container:hover .image {
     transform: scale(1.03);
   }
   .image_container {
     position: relative;
     aspect-ratio: 1.5;
-    /* --bg_img_style: {bg_img_style}; */
     border-radius: 1rem;
-    transition: filter 0.3s ease;
+    overflow: hidden;
     border: 1px solid oklch(var(--l10-t) var(--c3) var(--primary-h) / var(--o5));
   }
-  .image_container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background: var(--bg_img_style);
-    filter: blur(5px) opacity(0.5);
-    transform: scale(0.99);
-    z-index: -1;
-  }
-  .card_container:hover .image_container::before {
-    filter: blur(25px) opacity(0.1) saturate(250%) brightness(250%);
-    transform: scale(1.1, 1.9) translateY(28%);
-  }
-  .image_wrapper {
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    position: relative;
-    border-radius: 1rem;
-  }
   .image {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
-    position: relative;
+    transition: transform 0.2s ease;
+  }
+  .image_fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--g8-t);
   }
   .title {
     margin-top: 0.5rem;
@@ -167,6 +103,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
@@ -175,6 +112,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     margin-top: 0.5rem;
@@ -187,14 +125,23 @@
     display: flex;
     align-items: center;
     color: var(--g4-t);
-    font-weight: 500 !important;
+    font-weight: 500;
     font-size: clamp(1.4rem, 3vw, 1.6rem);
     line-height: clamp(1.8rem, 3.4vw, 2.2rem);
   }
   .footer {
     display: flex;
-    flex: 1;
     align-items: end;
     justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .view-label {
+    margin-left: auto;
+    font-weight: 600;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card_container, .image { transition: none; }
+    .container:hover .image { transform: none; }
   }
 </style>

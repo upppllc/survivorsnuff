@@ -1,25 +1,25 @@
 import { error } from "@sveltejs/kit"
-import { CONTIBASE_ACCESS_TOKEN } from "$env/static/private"
+import { env } from "$env/dynamic/private"
 
 export async function GET({ params, fetch }) {
-  if (!params?.storage_id) {
-    error(400, "storage_id requires")
+  if (!/^[a-zA-Z0-9_.-]+$/.test(params.storage_id ?? "")) error(400, "Invalid image")
+  let response
+  try {
+    response = await fetch(`https://www.contibase.com/api/v1/storage/${encodeURIComponent(params.storage_id)}`, {
+      headers: { Authorization: `Bearer ${env.CONTIBASE_ACCESS_TOKEN}` },
+      signal: AbortSignal.timeout(15000),
+    })
+  } catch {
+    error(503, "The photo is temporarily unavailable")
   }
-  const image_res = await fetch(`https://www.contibase.com/api/v1/storage/${params?.storage_id}`, {
-    method: "GET",
+  if (!response.ok) error(response.status === 404 ? 404 : 502, "Photo unavailable")
+  const contentType = response.headers.get("content-type") ?? ""
+  if (!contentType.startsWith("image/")) error(502, "Invalid photo response")
+  return new Response(response.body, {
     headers: {
-      Authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
-    },
-  })
-  if (!image_res.ok) {
-    error(400, "Error fetching image")
-  }
-  const image_data = await image_res.arrayBuffer()
-  return new Response(image_data, {
-    status: image_res.status,
-    headers: {
-      "Content-Type": image_res.headers.get("Content-Type"),
-      "Content-Length": image_res.headers.get("Content-Length"),
+      "content-type": contentType,
+      "cache-control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+      "x-content-type-options": "nosniff",
     },
   })
 }

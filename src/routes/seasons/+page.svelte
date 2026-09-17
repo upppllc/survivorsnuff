@@ -1,65 +1,35 @@
 <script>
-  import { create_button_manager, Button, create_time_manager, Time } from "sveltekit-ui"
-  import { goto } from "$app/navigation"
-
+  import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
   let { data } = $props()
-
-  let seasons_prepped = $state(null)
-
-  prep_seasons(data?.seasons)
-
-  function prep_seasons(seasons) {
-    let seasons_prepped_loc = []
-    if (Array.isArray(seasons) && seasons.length > 0) {
-      for (let season of seasons) {
-        seasons_prepped_loc.push({
-          ...season,
-          select_button_manager: create_button_manager({
-            is_compressed: true,
-            text: "Visit",
-            support_icon: "arrow_tailed",
-            on_click: () => goto(`/seasons/${season?.season_number}`),
-          }),
-          first_air_time_manager: create_time_manager({ val: season?.first_air_time, display_format: "calendar_date" }),
-          last_air_time_manager: create_time_manager({ val: season?.last_air_time, display_format: "calendar_date" }),
-        })
-      }
-    }
-    seasons_prepped_loc.sort((a, b) => b.season_number - a.season_number)
-    seasons_prepped = seasons_prepped_loc
-  }
+  const seasons = $derived([...(data.seasons ?? [])].sort((a, b) => b.season_number - a.season_number))
 </script>
 
-<div style="margin: auto; padding: 0 1rem; max-width: 60rem;">
-  <h2 style="margin-top: 0;">Seasons</h2>
-  {#if Array.isArray(seasons_prepped) && seasons_prepped.length > 0}
-    <div style="display: grid; gap: 1rem;">
-      {#each seasons_prepped as season_prepped}
-        <div
-          class="cardns"
-          style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding: 1rem;"
-        >
-          <div>
-            <h3 style="margin: 0;">
-              Season {season_prepped?.season_number}
-              {season_prepped?.title && season_prepped?.title != `Survivor ${season_prepped?.season_number}`
-                ? season_prepped?.title
-                : ""}
-            </h3>
-            <!-- <p>{season_prepped?.total_episodes} total episodes</p> -->
-            <p>
-              Aired <Time manager={season_prepped?.first_air_time_manager} /> to <Time
-                manager={season_prepped?.last_air_time_manager}
-              />
-            </p>
-          </div>
-          <div style="align-self: end; margin-left: auto">
-            <Button manager={season_prepped?.select_button_manager} />
-          </div>
-        </div>
-      {/each}
-    </div>
-  {:else}
-    <p>No seasons found</p>
-  {/if}
+<svelte:head><title>Survivor Season Archive | Survivor Snuff</title><meta name="description" content="Explore Survivor castaways, photos, and cast sheets by season." /></svelte:head>
+<div class="archive">
+  <p class="eyebrow">THE ARCHIVE</p><h1>Find your season.</h1><p class="intro">The faces, the places, the players. Pick a season to meet its cast.</p>
+  <div class="seasons">
+    {#each seasons as season}
+      <a class="season" href={`/seasons/${season.season_number}`}>
+        <span class="season-number">{season.season_number}</span>
+        <div><h2>Survivor {season.season_number}</h2>{#if season.title && season.title !== `Survivor ${season.season_number}`}<p class="title">{season.title}</p>{/if}
+        <p class="date">{seasonDateTimestamp(season.first_air_time) > Date.now() ? "Premieres" : "Premiered"} {formatSeasonDate(season.first_air_time)}{season.contestant_count ? ` · ${season.contestant_count} castaways` : ""}</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+    {/each}
+  </div>
 </div>
+<style>
+  .archive { max-width: 960px; margin: 0 auto; padding: 3.5rem 1.5rem; }
+  .eyebrow { font-size: .75rem; letter-spacing: .16em; color: var(--snuff-muted); font-weight: 750; }
+  h1 { font-size: clamp(2.8rem, 7vw, 4.5rem); margin: .6rem 0 1rem; letter-spacing: -.045em; line-height: 1; }
+  .intro { color: var(--snuff-muted); margin-bottom: 2.5rem; line-height: 1.5; }
+  .seasons { display: grid; gap: 1rem; }
+  .season { display: flex; align-items: center; gap: 1.5rem; border: 1px solid var(--snuff-border); background: var(--snuff-card); border-radius: 1rem; padding: 1.5rem; text-decoration: none; color: var(--snuff-text); }
+  .season:hover { border-color: var(--snuff-accent); }
+  .season-number { font-size: 2.5rem; font-weight: 750; letter-spacing: -.06em; color: var(--snuff-accent); min-width: 3.5rem; }
+  h2 { font-size: 1.4rem; margin: 0; letter-spacing: -.02em; }
+  .title { margin: .3rem 0 0; }
+  .date { font-size: .85rem; color: var(--snuff-muted); margin: .5rem 0 0; }
+  .arrow { margin-left: auto; font-size: 1.5rem; }
+  @media(max-width: 500px) { .season { padding: 1rem; gap: 1rem; } .archive { padding: 2.5rem 1rem; } }
+</style>
