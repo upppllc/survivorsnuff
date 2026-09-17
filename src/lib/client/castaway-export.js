@@ -1,4 +1,4 @@
-import { castawayImageSrc } from "../castaways.js"
+import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "../castaways.js"
 
 const WIDTH = 1440
 const MARGIN = 60
@@ -55,6 +55,7 @@ export function wrapImageText(text, maxWidth, measure) {
 
 function fieldsFor(castaway, layout, showSpoilers) {
   const fields = []
+  const profile = castawayProfileDetails(castaway, showSpoilers)
   function add(label, value) {
     const text = valueText(value)
     if (text) fields.push({ label, text })
@@ -64,13 +65,11 @@ function fieldsFor(castaway, layout, showSpoilers) {
   add("Hometown", castaway.hometown)
   if (layout === "details") {
     add("Current residence", castaway.current_residence)
-    add("Traits", castaway.traits)
-    add("Why they applied", castaway.why_applied)
-    add("Life experience", castaway.life_experience)
-    add("Their game", castaway.unique_gameplay)
-    add("About", castaway.summary)
+    add("Traits", profile.traits)
+    const labels = { summary: "About", why_applied: "Why they applied", life_experience: "Life experience", unique_gameplay: "Their game" }
+    for (const bio of profile.bios) add(labels[bio.key], bio.value)
   }
-  add("Tribe", castaway.tribe?.name ?? castaway.tribe_name ?? castaway.tribe)
+  add("Tribe", profile.tribe)
   if (showSpoilers && Number.isInteger(castaway.result_order)) {
     add("Finish", `${castaway.result_order}${castaway.is_on_jury ? " · Jury member" : ""}`)
   }
@@ -81,6 +80,8 @@ function fieldsFor(castaway, layout, showSpoilers) {
 export function measureCastawayImage({ season, castaways, layout = "grid", showSpoilers = false, measure }) {
   if (!["grid", "details"].includes(layout)) throw new Error("Choose a grid or detailed cast image.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
+  castaways = sortCastawaysAlphabetically(castaways)
+  showSpoilers = showSpoilers === true
 
   const operations = []
   const text = (content, x, y, width, size, weight = 400, color = COLORS.body, heading = false) => {
@@ -93,7 +94,7 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
   const title = `Survivor ${valueText(season?.season_number)}`.trim()
   let y = text("SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, WIDTH - MARGIN * 2, 20, 700, COLORS.accent)
   y = text(title, MARGIN, y + 14, WIDTH - MARGIN * 2, 56, 700, COLORS.ink, true)
-  const subtitle = [valueText(season?.title), `${castaways.length} castaways`, layout === "grid" ? "Meet the cast" : "Get to know the cast"]
+  const subtitle = [valueText(season?.title), `${castaways.length} castaways`, "Alphabetical by name"]
     .filter(Boolean)
     .join("  ·  ")
   y = text(subtitle, MARGIN, y + 8, WIDTH - MARGIN * 2, 24, 400, COLORS.muted)
@@ -154,7 +155,7 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
   const photoCredit = valueText(season?.photo_credit ?? season?.image_credit) || "Cast photos: CBS / Paramount"
   y = text(photoCredit, MARGIN, y + 8, WIDTH - MARGIN * 2, 18, 400, COLORS.muted)
   y = text("An independent fan guide. Survivor is a CBS / Paramount series.", MARGIN, y + 7, WIDTH - MARGIN * 2, 17, 400, COLORS.muted)
-  return { width: WIDTH, height: Math.ceil(y + 48), operations, cards }
+  return { width: WIDTH, height: Math.ceil(y + 48), operations, cards, orderedCastaways: castaways }
 }
 
 export function castawayCanvasSize(width, height) {
@@ -243,6 +244,7 @@ function roundedRect(ctx, x, y, width, height, radius) {
 export async function createCastawayImage({ season, castaways, layout = "grid", showSpoilers = false }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
+  showSpoilers = showSpoilers === true
   const font = await headingFont()
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d", { alpha: false })
@@ -257,7 +259,7 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
       return ctx.measureText(text).width
     },
   })
-  const photos = await loadPhotos(castaways, season?.season_number)
+  const photos = await loadPhotos(measured.orderedCastaways, season?.season_number)
   const dimensions = castawayCanvasSize(measured.width, measured.height)
   canvas.width = dimensions.width
   canvas.height = dimensions.height

@@ -1,6 +1,6 @@
 # Survivor Snuff
 
-A SvelteKit fan guide to Survivor casts, seasons, and episode recaps. The current
+A SvelteKit fan guide to Survivor casts, seasons, and episode details. The current
 season is Survivor 51, with an official cast guide and downloadable cast sheets.
 
 ## Local development
@@ -32,12 +32,24 @@ npm run dev
 
 ```sh
 npm run check
-node --test src/lib/client/castaway-export.test.js src/lib/season-dates.test.js
+npm test
 npm run build
 ```
 
 The project uses the SvelteKit Vercel adapter. Configure the same environment
 variables in the deployment environment.
+
+## UI structure
+
+Follow the `sveltekit-ui` component/manager pattern: route files pass data to a
+paired `index.svelte` view and `index.svelte.js` manager under
+`src/lib/components`. Keep state, derived display data, and event behavior in
+the manager. Prefer the package's `Button`, `TextInput`, `Checkbox`, and `Layout`
+components and their `create_*_manager` functions over bespoke controls.
+
+The shared layout uses `create_global_manager`; Home, Seasons, Season, Episode,
+and Error each have their own managers. Keep the package's default root sizing
+and theme behavior, and style custom cast cards locally.
 
 ## Season data and maintenance
 
@@ -76,6 +88,12 @@ On a season page, choose **Grid** or **Details**, then **Save image**. Grid PNGs
 always use three columns; detailed PNGs use one castaway per row and expand to
 fit available information. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
+
+Spoiler-free pages show the whole cast with equal visual treatment in
+alphabetical name order. Generic promotional sections do not feature selected
+contestants. Results, tribe updates, episode titles, and unverified narrative
+load only after someone explicitly reveals spoilers. Changing the export
+settings clears its preview. See [the project conventions](AGENTS.md).
 
 Images are rendered locally in the browser, independently of the page's scroll
 position or screen size. Current photos load from the site; archive photos use
