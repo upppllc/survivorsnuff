@@ -114,7 +114,7 @@ test("optional prediction names align at the top right and wrap without overlapp
       continue
     }
     const author = named.operations.find((operation) => operation.align === "right")
-    assert.deepEqual(author.lines, ["Zoë de León 🏝️"])
+    assert.equal(author.lines.join(" "), "Zoë de León 🏝️")
     assert.equal(author.y, named.operations[0].y)
     assert.equal(author.x + author.width, named.width - named.cards[0].x)
     assert.ok(named.cards[0].y > author.y + author.lines.length * author.lineHeight)
@@ -305,6 +305,26 @@ test("prediction exports suppress real results and retrospective narratives even
     const renderedText = after.operations.flatMap((operation) => operation.lines ?? []).join(" ")
     assert.doesNotMatch(renderedText, /Merged Tribe|Sole Survivor|Jury member|final vote|finale|unverified retrospective|previous season|decisive idol|INCLUDES SEASON RESULTS/i)
     assert.deepEqual(after.operations.filter((operation) => operation.type === "prediction_badge").map((badge) => badge.rank), [1, 2])
+  }
+})
+
+test("website, photo credit, and disclaimer share one footer row without wrapping or overlapping", () => {
+  for (const photo_credit of ["Robert Voets / CBS", "Robert Voets / CBS\nAdditional photographers and production contributors: ".repeat(4)]) {
+    const result = measureCastawayImage({ season: { ...season, photo_credit }, castaways, measure })
+    const footer = result.operations.slice(-3)
+    assert.equal(new Set(footer.map((operation) => operation.y)).size, 1)
+    assert.deepEqual(footer.map((operation) => operation.lines), [
+      ["survivorsnuff.com"],
+      [photo_credit.trim().replace(/\s+/g, " ")],
+      ["An independent fan guide. Survivor is a CBS / Paramount series."],
+    ])
+    assert.ok(footer[0].y > Math.max(...result.cards.map((card) => card.y + card.height)))
+    for (const [index, operation] of footer.entries()) {
+      assert.ok(measure(operation.lines[0], operation.size) <= operation.width)
+      assert.ok(operation.x >= result.cards[0].x)
+      assert.ok(operation.x + operation.width <= result.width - result.cards[0].x + 0.001)
+      if (footer[index + 1]) assert.ok(operation.x + operation.width < footer[index + 1].x)
+    }
   }
 })
 

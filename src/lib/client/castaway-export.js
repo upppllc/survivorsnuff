@@ -99,7 +99,7 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
     .join("  ·  ")
   y = text(subtitle, MARGIN, y + 8, headerWidth, 22, 400, COLORS.muted)
   if (author) {
-    const authorBottom = text(author, WIDTH - MARGIN - authorWidth, 48, authorWidth, 46, 700, COLORS.accent, true, "right")
+    const authorBottom = text(author, WIDTH - MARGIN - authorWidth, 48, authorWidth, 92, 700, COLORS.accent, true, "right")
     y = Math.max(y, authorBottom)
   }
   if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, headerWidth, 17, 700, COLORS.accent)
@@ -140,10 +140,23 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
   }
 
   y += 16
-  y = text("survivorsnuff.com", MARGIN, y, WIDTH - MARGIN * 2, 23, 700, COLORS.ink)
-  const photoCredit = valueText(season?.photo_credit ?? season?.image_credit) || "Cast photos: CBS / Paramount"
-  y = text(photoCredit, MARGIN, y + 8, WIDTH - MARGIN * 2, 17, 400, COLORS.muted)
-  y = text("An independent fan guide. Survivor is a CBS / Paramount series.", MARGIN, y + 7, WIDTH - MARGIN * 2, 16, 400, COLORS.muted)
+  const photoCredit = (valueText(season?.photo_credit ?? season?.image_credit) || "Cast photos: CBS / Paramount").replace(/\s+/g, " ")
+  const footer = [
+    { content: "survivorsnuff.com", weight: 700, color: COLORS.ink },
+    { content: photoCredit, weight: 400, color: COLORS.muted },
+    { content: "An independent fan guide. Survivor is a CBS / Paramount series.", weight: 400, color: COLORS.muted },
+  ]
+  const footerWidth = WIDTH - MARGIN * 2
+  const naturalWidth = footer.reduce((sum, part) => sum + measure(part.content, 17, part.weight, false), 0)
+  const footerSize = Math.min(17, 17 * (footerWidth - 48 - footer.length) / naturalWidth)
+  const footerWidths = footer.map((part) => measure(part.content, footerSize, part.weight, false) + 1)
+  const footerGap = (footerWidth - footerWidths.reduce((sum, width) => sum + width, 0)) / (footer.length - 1)
+  const footerY = y
+  let footerX = MARGIN
+  footer.forEach((part, index) => {
+    y = text(part.content, footerX, footerY, footerWidths[index], footerSize, part.weight, part.color)
+    footerX += footerWidths[index] + footerGap
+  })
   return { width: WIDTH, height: Math.ceil(y + 48), operations, cards, orderedCastaways: castaways }
 }
 
