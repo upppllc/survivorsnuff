@@ -27,15 +27,6 @@ export function create_season_manager(config) {
   let spoilers_request = null
   const preview_id = `cast-sheet-preview-${config?.season?.season_number}`
 
-  const search_text_input_manager = create_text_input_manager({
-    type: "search",
-    name: "castaway-search",
-    val: "",
-    aria_label: "Search castaways",
-    placeholder: "Find a name, hometown, or job",
-    autocomplete: "off",
-    on_change: invalidate_saved_image,
-  })
   const author_name_text_input_manager = create_text_input_manager({
     name: "cast-sheet-author",
     val: "",
@@ -55,8 +46,6 @@ export function create_season_manager(config) {
     error_message: () => spoilers_error,
     on_change: load_spoilers,
   })
-  const search = $derived(String(search_text_input_manager.val ?? ""))
-  const search_query = $derived(search.trim().toLowerCase())
   const is_show_spoilers = $derived(!is_prediction_mode && show_spoilers_checkbox_manager.val_bool)
   const active_data = $derived(is_show_spoilers && full_data ? full_data : config)
   const season = $derived(active_data?.season ?? {})
@@ -102,9 +91,7 @@ export function create_season_manager(config) {
       ...get_prediction_controls(person),
     })))
   })
-  const filtered_castaways = $derived(is_prediction_mode ? prediction_castaways : castaways_prepped.filter((person) =>
-    [person.name, person.occupation, person.hometown, person.current_residence].join(" ").toLowerCase().includes(search_query)
-  ))
+  const display_castaways = $derived(is_prediction_mode ? prediction_castaways : castaways_prepped)
   const season_facts = $derived([
     season.location,
     `${castaways_prepped.length || season.contestant_count || 0} castaways`,
@@ -206,7 +193,7 @@ export function create_season_manager(config) {
     support_icon: "photo",
     icon_pos: "left",
     is_loading: () => is_generating,
-    is_disabled: () => !filtered_castaways.length || spoilers_loading,
+    is_disabled: () => !display_castaways.length || spoilers_loading,
     is_compressed: true,
     is_no_wrap: true,
     on_click: preview_image,
@@ -250,16 +237,10 @@ export function create_season_manager(config) {
       preview_image_button_manager.focus()
     },
   })
-  const clear_search_button_manager = create_button_manager({
-    type: "outlined",
-    text: "Clear search",
-    is_compressed: true,
-    on_click: () => search_text_input_manager.set_val(""),
-  })
   const grid_description = $derived(`${column_name(grid_columns)}-column grid`)
   const export_hint = $derived(is_prediction_mode
     ? `Your ${grid_description} image includes all ${prediction_castaways.length} castaways and their profiles in your chosen order, with numbered photo badges. Your picks stay while you switch modes; save an image before leaving this page.`
-    : `Castaways are listed alphabetically by name. Preview the ${grid_description} with full profiles, then save it as a PNG.${search_query ? ` Includes the ${filtered_castaways.length} matching castaways.` : ""}`)
+    : `Castaways are listed alphabetically by name. Preview the ${grid_description} with full profiles, then save it as a PNG.`)
 
   function get_prediction_controls(person) {
     const key = predictionCastawayKey(person)
@@ -381,13 +362,13 @@ export function create_season_manager(config) {
   }
 
   async function preview_image() {
-    if (disposed || is_generating || spoilers_loading || !filtered_castaways.length) return
+    if (disposed || is_generating || spoilers_loading || !display_castaways.length) return
     invalidate_saved_image()
     is_generating = true
     const revision = export_revision
     const selection = {
       season,
-      castaways: [...filtered_castaways],
+      castaways: [...display_castaways],
       gridColumns: grid_columns,
       authorName: is_prediction_mode ? author_name : "",
       showSpoilers: is_show_spoilers,
@@ -469,7 +450,6 @@ export function create_season_manager(config) {
     cast_guide_button_manager,
     prediction_button_manager,
     reset_prediction_button_manager,
-    search_text_input_manager,
     author_name_text_input_manager,
     show_spoilers_checkbox_manager,
     view_seasons_button_manager,
@@ -483,9 +463,7 @@ export function create_season_manager(config) {
     zoom_preview_button_manager,
     close_preview_button_manager,
     preview_id,
-    clear_search_button_manager,
-    get search() { return search },
-    get filtered_castaways() { return filtered_castaways },
+    get display_castaways() { return display_castaways },
     get is_generating() { return is_generating },
     get export_error() { return export_error },
     get share_error() { return share_error },

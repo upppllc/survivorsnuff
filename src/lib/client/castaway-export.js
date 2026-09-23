@@ -81,24 +81,28 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
   showSpoilers = !prediction && showSpoilers === true
 
   const operations = []
-  const text = (content, x, y, width, size, weight = 400, color = COLORS.body, heading = false) => {
+  const text = (content, x, y, width, size, weight = 400, color = COLORS.body, heading = false, align = "left") => {
     const lines = wrapImageText(content, width, (line) => measure(line, size, weight, heading))
     const lineHeight = Math.ceil(size * 1.35)
-    operations.push({ type: "text", lines, x, y, width, size, weight, color, heading, lineHeight })
+    operations.push({ type: "text", lines, x, y, width, size, weight, color, heading, lineHeight, ...(align === "right" ? { align } : {}) })
     return y + lines.length * lineHeight
   }
 
   const title = `Survivor ${valueText(season?.season_number)}`.trim()
-  let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, WIDTH - MARGIN * 2, 19, 700, COLORS.accent)
-  y = text(title, MARGIN, y + 14, WIDTH - MARGIN * 2, 52, 700, COLORS.ink, true)
+  const author = prediction && typeof authorName === "string" ? authorName.trim().replace(/\s+/g, " ") : ""
+  const authorWidth = 480
+  const headerWidth = WIDTH - MARGIN * 2 - (author ? authorWidth + 36 : 0)
+  let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, headerWidth, 19, 700, COLORS.accent)
+  y = text(title, MARGIN, y + 14, headerWidth, 52, 700, COLORS.ink, true)
   const subtitle = [valueText(season?.title), `${castaways.length} castaways`, prediction ? `1 = predicted winner  ·  ${castaways.length} = first eliminated` : "Alphabetical by name"]
     .filter(Boolean)
     .join("  ·  ")
-  y = text(subtitle, MARGIN, y + 8, WIDTH - MARGIN * 2, 22, 400, COLORS.muted)
-  const author = typeof authorName === "string" ? authorName.trim().replace(/\s+/g, " ") : ""
-  if (prediction && author) y = text(`Prediction by ${author}`, MARGIN, y + 8, WIDTH - MARGIN * 2, 22, 400, COLORS.ink)
-  if (prediction) y = text("A PERSONAL PREDICTION · NOT ACTUAL RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 17, 700, COLORS.accent)
-  if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 17, 700, COLORS.accent)
+  y = text(subtitle, MARGIN, y + 8, headerWidth, 22, 400, COLORS.muted)
+  if (author) {
+    const authorBottom = text(author, WIDTH - MARGIN - authorWidth, 48, authorWidth, 46, 700, COLORS.accent, true, "right")
+    y = Math.max(y, authorBottom)
+  }
+  if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, headerWidth, 17, 700, COLORS.accent)
   y += 34
 
   const columns = gridColumns === 3 || gridColumns === 5 ? gridColumns : 4
@@ -297,7 +301,9 @@ export async function createCastawayImage({ season, castaways, gridColumns = 4, 
     } else if (operation.type === "text") {
       setFont(operation.size, operation.weight, operation.heading)
       ctx.fillStyle = operation.color
-      operation.lines.forEach((line, index) => ctx.fillText(line, operation.x, operation.y + index * operation.lineHeight))
+      ctx.textAlign = operation.align ?? "left"
+      const textX = operation.align === "right" ? operation.x + operation.width : operation.x
+      operation.lines.forEach((line, index) => ctx.fillText(line, textX, operation.y + index * operation.lineHeight))
     }
   }
 

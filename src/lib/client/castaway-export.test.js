@@ -102,7 +102,7 @@ test("grid columns default to four", () => {
   }
 })
 
-test("optional author names label only predictions, normalize whitespace, and wrap without overlapping the cast", () => {
+test("optional prediction names align at the top right and wrap without overlapping the header or cast", () => {
   for (const prediction of [false, true]) {
     const original = measureCastawayImage({ season, castaways, prediction, measure })
     for (const authorName of ["", " \n\t ", null, undefined, 42, { name: "Jordan" }]) {
@@ -113,24 +113,26 @@ test("optional author names label only predictions, normalize whitespace, and wr
       assert.deepEqual(named, original, "normal cast images ignore even a nonempty author name")
       continue
     }
-    const label = "Prediction"
-    const byline = named.operations.find((operation) => operation.lines?.[0].startsWith(`${label} by `))
-    assert.deepEqual(byline.lines, [`${label} by Zoë de León 🏝️`])
-    const subtitleIndex = named.operations.findIndex((operation) => operation.lines?.some((line) => line.includes("18 castaways")))
-    assert.equal(named.operations.indexOf(byline), subtitleIndex + 1)
-    const nextOperation = named.operations[named.operations.indexOf(byline) + 1]
-    assert.ok(nextOperation.y >= byline.y + byline.lines.length * byline.lineHeight)
+    const author = named.operations.find((operation) => operation.align === "right")
+    assert.deepEqual(author.lines, ["Zoë de León 🏝️"])
+    assert.equal(author.y, named.operations[0].y)
+    assert.equal(author.x + author.width, named.width - named.cards[0].x)
+    assert.ok(named.cards[0].y > author.y + author.lines.length * author.lineHeight)
 
     const authorName = "Zoë🙂".repeat(100)
     for (const gridColumns of [3, 4, 5]) {
       const longName = measureCastawayImage({ season, castaways, gridColumns, prediction, authorName, measure })
-      const wrapped = longName.operations.find((operation) => operation.lines?.[0].startsWith(`${label} by`))
+      const wrapped = longName.operations.find((operation) => operation.align === "right")
       assert.ok(wrapped.lines.length > 1)
-      assert.equal(wrapped.lines.join("").replace(/\s/g, ""), `${label} by ${authorName}`.replace(/\s/g, ""))
+      assert.equal(wrapped.lines.join(""), authorName)
       assert.ok(wrapped.lines.every((line) => measure(line, wrapped.size) <= wrapped.width))
       const firstCard = longName.cards[0]
       for (const operation of longName.operations.slice(0, longName.operations.indexOf(firstCard))) {
-        if (operation.type === "text") assert.ok(operation.y + operation.lines.length * operation.lineHeight < firstCard.y)
+        if (operation.type === "text") {
+          assert.ok(operation.y + operation.lines.length * operation.lineHeight < firstCard.y)
+          assert.ok(operation.lines.every((line) => measure(line, operation.size) <= operation.width))
+          if (operation !== wrapped) assert.ok(operation.x + operation.width < wrapped.x)
+        }
       }
     }
   }
@@ -270,7 +272,7 @@ test("prediction exports preserve the chosen order and associate numbered badges
     assert.match(renderedText, /MY ELIMINATION PREDICTION/)
     assert.match(renderedText, /1 = predicted winner/)
     assert.match(renderedText, /3 = first eliminated/)
-    assert.match(renderedText, /NOT ACTUAL RESULTS/)
+    assert.doesNotMatch(renderedText, /A PERSONAL PREDICTION|NOT ACTUAL RESULTS/)
     assert.doesNotMatch(renderedText, /Alphabetical by name/)
   }
   assert.equal(people[0].name, "Zoë Example")

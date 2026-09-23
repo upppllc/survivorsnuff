@@ -43,8 +43,6 @@
     <div class="cast-toolbar">
       {#if manager.is_prediction_mode}
         <Button manager={manager.reset_prediction_button_manager} />
-      {:else}
-        <div class="search"><TextInput manager={manager.search_text_input_manager} /></div>
       {/if}
       <div class="toolbar-actions">
         <Button manager={manager.preview_image_button_manager} />
@@ -93,9 +91,9 @@
       {/if}
     </div>
 
-    {#if manager.filtered_castaways.length}
+    {#if manager.display_castaways.length}
       <div class="cast-grid">
-        {#each manager.filtered_castaways as person (person.id ?? person.name)}
+        {#each manager.display_castaways as person (person.id ?? person.name)}
           <article class="cast-card">
             <div class="portrait-wrap">
               {#if person.photo_failed}
@@ -131,7 +129,7 @@
         {/each}
       </div>
     {:else}
-      <div class="empty-state"><h3>{manager.castaways_prepped.length ? "No castaways match that search." : "The cast is still under wraps."}</h3><p>{manager.castaways_prepped.length ? "Try a different name, hometown, or occupation." : "Check back for cast announcements and photos."}</p>{#if manager.search}<Button manager={manager.clear_search_button_manager} />{/if}</div>
+      <div class="empty-state"><h3>The cast is still under wraps.</h3><p>Check back for cast announcements and photos.</p></div>
     {/if}
     {#if manager.season_prepped.source_url}
       <p class="photo-credit">
@@ -189,7 +187,6 @@
   .count { display: inline-block; vertical-align: middle; font-size: 1.44rem; margin-left: 1.28rem; padding: 0.4rem 0.96rem; border-radius: 999px; background: var(--snuff-surface); color: var(--snuff-muted); letter-spacing: 0; }
   .cast-toolbar, .toolbar-actions { display: flex; align-items: center; gap: 1.2rem; }
   .cast-toolbar { justify-content: space-between; }
-  .search { max-width: 38.4rem; min-width: 0; flex: 1; }
   .export-options { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1.6rem 2.4rem; margin-top: 1.6rem; }
   .author-input { width: min(100%, 32rem); }
   .grid-options { display: flex; align-items: center; flex-wrap: wrap; gap: 0.8rem; font-size: 1.36rem; color: var(--snuff-muted); }
@@ -247,7 +244,6 @@
   .finalist-card { border: 1px solid var(--snuff-border); padding: 2rem; border-radius: 1.2rem; }
   @media (max-width: 700px) {
     .cast-toolbar { flex-direction: column; align-items: stretch; }
-    .search { max-width: none; }
     .toolbar-actions { justify-content: space-between; }
     .cast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.28rem; }
     .mobile-grid-note { display: block; flex-basis: 100%; font-size: 1.2rem; line-height: 1.5; }

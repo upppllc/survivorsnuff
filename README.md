@@ -114,12 +114,13 @@ the PNG always uses the selected count. Changing the count clears the old
 preview and preserves prediction ranks. The grid and PNGs include all available
 profile details and expand to fit them. Profiles use the full photo width over the
 page background, with subtle divider lines instead of filled cards. Saved images
-use compact text and credit the photos once in the footer. Search filters the people included in the export.
+use compact text and credit the photos once in the footer. The whole cast is included in each export.
 Results follow the spoiler toggle and are hidden by default.
 
-In **My prediction**, enter **Your name (optional)** to add a byline to the image.
+In **My prediction**, enter **Your name (optional)** to put your name in bold
+orange at the top right of the image.
 Leave it blank for an unnamed prediction. The regular cast guide has no name
-input or byline. Changing the name clears the old preview; the name stays while
+input or author name. Changing the name clears the old preview; the name stays while
 switching modes and grid widths on the current page.
 
 Choose **My prediction** to arrange the entire cast with each person's **Up**
