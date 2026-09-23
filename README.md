@@ -106,8 +106,9 @@ share sheet keeps the preview open and does not start a download. If file
 sharing is unavailable, touch and hold the preview image for photo options.
 **Download PNG** remains available to save a file in any browser.
 
-Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
-or **Close preview**. Generating a preview does not download anything. You can
+The preview stays fitted to the available width, with save/share, download, and
+an outlined **Close preview** button at the top right. Generating a preview does
+not download anything. You can
 choose **3 through 8 across** in **Grid Width** (**7 across** is the default) for the saved image,
 in either Cast guide or My prediction. The page grid responds to available screen
 width independently of this setting; the PNG uses the selected count.

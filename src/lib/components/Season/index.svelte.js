@@ -20,7 +20,6 @@ export function create_season_manager(config) {
   let is_generating = $state(false)
   let export_error = $state("")
   let saved_image = $state(null)
-  let is_preview_zoomed = $state(false)
   let is_sharing = $state(false)
   let share_error = $state("")
   let failed_photos = $state({})
@@ -226,18 +225,8 @@ export function create_season_manager(config) {
     is_compressed: true,
     on_click: save_png,
   })
-  const zoom_preview_button_manager = create_button_manager({
-    type: "outlined",
-    text: () => is_preview_zoomed ? "Fit preview" : "Zoom preview",
-    support_icon: "resize",
-    icon_pos: "left",
-    aria_label: () => is_preview_zoomed ? "Fit preview" : "Zoom preview",
-    is_disabled: () => !saved_image,
-    is_compressed: true,
-    on_click: () => { is_preview_zoomed = !is_preview_zoomed },
-  })
   const close_preview_button_manager = create_button_manager({
-    type: "plain",
+    type: "outlined",
     text: "Close preview",
     support_icon: "x",
     icon_pos: "left",
@@ -387,7 +376,6 @@ export function create_season_manager(config) {
   function invalidate_saved_image() {
     export_revision++
     export_error = ""
-    is_preview_zoomed = false
     is_sharing = false
     share_error = ""
     if (saved_image) {
@@ -472,14 +460,12 @@ export function create_season_manager(config) {
         ...result,
         share_file: prepareCastawayShareFile(result),
         url: URL.createObjectURL(result.blob),
-        description: `${selection.prediction ? "My prediction · " : ""}${selection.castaways.length} castaways · ${selection.gridColumns}-column grid · ${result.width} × ${result.height} px`,
         alt: (selection.prediction
           ? `My Survivor ${selection.season.season_number} prediction with ${selection.castaways.length} numbered picks, predicted winner first`
           : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${column_name(selection.gridColumns)}-column grid`)
           + (selection.authorName ? `. By ${selection.authorName}.` : "")
           + (selection.showActualPlacements ? " Actual placements shown in red (spoilers)." : ""),
         is_prediction: selection.prediction,
-        includes_spoilers: selection.showSpoilers || selection.showActualPlacements,
       }
       await tick()
       if (!disposed && revision === export_revision) {
@@ -550,7 +536,6 @@ export function create_season_manager(config) {
     preview_image_button_manager,
     share_photo_button_manager,
     save_png_button_manager,
-    zoom_preview_button_manager,
     close_preview_button_manager,
     preview_id,
     get display_castaways() { return display_castaways },
@@ -558,7 +543,6 @@ export function create_season_manager(config) {
     get export_error() { return export_error },
     get share_error() { return share_error },
     get saved_image() { return saved_image },
-    get is_preview_zoomed() { return is_preview_zoomed },
     get export_hint() { return export_hint },
     get is_show_spoilers() { return is_show_spoilers },
     get is_show_actual_placements() { return is_show_actual_placements },
