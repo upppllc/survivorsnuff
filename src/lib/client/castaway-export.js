@@ -132,11 +132,11 @@ export function measureCastawayImage({ season, castaways, gridColumns = 7, showS
       const imageHeight = cardWidth * (Number(season?.season_number) === 51 ? 1.25 : 1.05)
       operations.push({ type: "photo", index: index + column, x, y, width: cardWidth, height: imageHeight })
       if (prediction) {
-        operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: x + 16, y: y + 16, width: 64, height: 64 })
+        operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: x + 12, y: y + 12, width: 58, height: 58 })
       }
       const actualPlacement = showActualPlacements ? actualPlacementFor(castaway, actualPlacements, castaways.length) : null
       if (actualPlacement !== null) {
-        operations.push({ type: "actual_placement_badge", index: index + column, placement: actualPlacement, x: x + cardWidth - 80, y: y + 16, width: 64, height: 64 })
+        operations.push({ type: "actual_placement_badge", index: index + column, placement: actualPlacement, x: x + cardWidth - 70, y: y + 12, width: 58, height: 58 })
       }
       const textX = x
       const textWidth = cardWidth
@@ -327,7 +327,7 @@ export async function createCastawayImage({ season, castaways, gridColumns = 7, 
       ctx.fillStyle = isActual ? "#ffffff" : COLORS.ink
       ctx.textAlign = "center"
       ctx.textBaseline = "middle"
-      setFont(operation.width * 0.5, 700, false)
+      setFont(32, 700, false)
       ctx.fillText(String(isActual ? operation.placement : operation.rank), operation.x + operation.width / 2, operation.y + operation.height / 2 + 1)
       ctx.restore()
     } else if (operation.type === "text") {

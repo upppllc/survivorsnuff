@@ -227,8 +227,8 @@
   .bio { margin-top: 1.6rem; }
   .bio p { margin: 0; font-size: 1.36rem; line-height: 1.6; overflow-wrap: anywhere; }
   .result-badge { position: absolute; bottom: 1.04rem; left: 1.04rem; background: #173b2f; color: #fff; border-radius: 0.56rem; padding: 0.64rem 0.96rem; font-size: 1.28rem; }
-  .prediction-badge { position: absolute; top: 1.2rem; left: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #fff; color: #173e37; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
-  .actual-placement-badge { position: absolute; top: 1.2rem; right: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #b42318; color: #fff; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .prediction-badge { position: absolute; top: 0.96rem; left: 0.96rem; width: 4rem; height: 4rem; display: grid; place-items: center; background: #fff; color: #173e37; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .actual-placement-badge { position: absolute; top: 0.96rem; right: 0.96rem; width: 4rem; height: 4rem; display: grid; place-items: center; background: #b42318; color: #fff; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
   .prediction-position { margin: 0 0 0.8rem; color: var(--snuff-muted); font-size: 1.28rem; font-weight: 650; }
   .prediction-controls { display: flex; flex-wrap: wrap; gap: 0.64rem; margin-top: 1.6rem; }
   .prediction-reset { display: flex; justify-content: flex-end; margin-top: 3.2rem; padding: 1.6rem 0; }
