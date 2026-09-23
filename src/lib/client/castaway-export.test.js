@@ -77,7 +77,8 @@ test("five-column images retain all 21 castaways, fit their text, and keep predi
       const name = cardOperations.find((operation) => operation.type === "text")
       assert.equal(name.lines.join(" "), ordered[index].name)
       for (const operation of cardOperations.filter((operation) => operation.type === "text" && operation.y < card.y + card.height)) {
-        assert.ok(operation.x >= card.x && operation.x + operation.width <= card.x + card.width)
+        assert.equal(operation.x, photo.x)
+        assert.equal(operation.width, photo.width)
         assert.ok(operation.y + operation.lines.length * operation.lineHeight <= card.y + card.height)
         assert.ok(operation.lines.every((line) => measure(line, operation.size) <= operation.width))
       }
@@ -97,6 +98,40 @@ test("grid columns default to four", () => {
     const original = measureCastawayImage({ season, castaways, prediction, measure })
     for (const gridColumns of [4, 0, 2, 6, "5", null]) {
       assert.deepEqual(measureCastawayImage({ season, castaways, gridColumns, prediction, measure }), original)
+    }
+  }
+})
+
+test("optional author names label only predictions, normalize whitespace, and wrap without overlapping the cast", () => {
+  for (const prediction of [false, true]) {
+    const original = measureCastawayImage({ season, castaways, prediction, measure })
+    for (const authorName of ["", " \n\t ", null, undefined, 42, { name: "Jordan" }]) {
+      assert.deepEqual(measureCastawayImage({ season, castaways, prediction, authorName, measure }), original)
+    }
+    const named = measureCastawayImage({ season, castaways, prediction, authorName: "  Zoë\n\t de   León 🏝️  ", measure })
+    if (!prediction) {
+      assert.deepEqual(named, original, "normal cast images ignore even a nonempty author name")
+      continue
+    }
+    const label = "Prediction"
+    const byline = named.operations.find((operation) => operation.lines?.[0].startsWith(`${label} by `))
+    assert.deepEqual(byline.lines, [`${label} by Zoë de León 🏝️`])
+    const subtitleIndex = named.operations.findIndex((operation) => operation.lines?.some((line) => line.includes("18 castaways")))
+    assert.equal(named.operations.indexOf(byline), subtitleIndex + 1)
+    const nextOperation = named.operations[named.operations.indexOf(byline) + 1]
+    assert.ok(nextOperation.y >= byline.y + byline.lines.length * byline.lineHeight)
+
+    const authorName = "Zoë🙂".repeat(100)
+    for (const gridColumns of [3, 4, 5]) {
+      const longName = measureCastawayImage({ season, castaways, gridColumns, prediction, authorName, measure })
+      const wrapped = longName.operations.find((operation) => operation.lines?.[0].startsWith(`${label} by`))
+      assert.ok(wrapped.lines.length > 1)
+      assert.equal(wrapped.lines.join("").replace(/\s/g, ""), `${label} by ${authorName}`.replace(/\s/g, ""))
+      assert.ok(wrapped.lines.every((line) => measure(line, wrapped.size) <= wrapped.width))
+      const firstCard = longName.cards[0]
+      for (const operation of longName.operations.slice(0, longName.operations.indexOf(firstCard))) {
+        if (operation.type === "text") assert.ok(operation.y + operation.lines.length * operation.lineHeight < firstCard.y)
+      }
     }
   }
 })
@@ -121,6 +156,8 @@ test("all castaway details and long biographies fit inside grid cards without ov
       const end = nextCard ? result.operations.indexOf(nextCard) : result.operations.length
       for (const operation of result.operations.slice(start + 1, end)) {
         if (operation.type === "text" && operation.y < card.y + card.height) {
+          assert.equal(operation.x, card.x)
+          assert.equal(operation.width, card.width)
           assert.ok(operation.y + operation.lines.length * operation.lineHeight <= card.y + card.height)
           assert.ok(operation.lines.every((line) => measure(line, operation.size) <= operation.width))
         }

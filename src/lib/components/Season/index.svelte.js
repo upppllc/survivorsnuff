@@ -36,6 +36,17 @@ export function create_season_manager(config) {
     autocomplete: "off",
     on_change: invalidate_saved_image,
   })
+  const author_name_text_input_manager = create_text_input_manager({
+    name: "cast-sheet-author",
+    val: "",
+    label: "Your name (optional)",
+    aria_label: "Your name (optional)",
+    placeholder: "Name on your prediction",
+    autocomplete: "name",
+    max_length: 100,
+    on_change: invalidate_saved_image,
+  })
+  const author_name = $derived(String(author_name_text_input_manager.val ?? "").trim().replace(/\s+/g, " "))
   const show_spoilers_checkbox_manager = create_checkbox_manager({
     val: false,
     name: "show-season-results",
@@ -378,6 +389,7 @@ export function create_season_manager(config) {
       season,
       castaways: [...filtered_castaways],
       gridColumns: grid_columns,
+      authorName: is_prediction_mode ? author_name : "",
       showSpoilers: is_show_spoilers,
       prediction: is_prediction_mode,
     }
@@ -390,9 +402,10 @@ export function create_season_manager(config) {
         share_file: prepareCastawayShareFile(result),
         url: URL.createObjectURL(result.blob),
         description: `${selection.prediction ? "My prediction · " : ""}${selection.castaways.length} castaways · ${selection.gridColumns}-column grid · ${result.width} × ${result.height} px`,
-        alt: selection.prediction
+        alt: (selection.prediction
           ? `My Survivor ${selection.season.season_number} prediction with ${selection.castaways.length} numbered picks, predicted winner first`
-          : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${column_name(selection.gridColumns)}-column grid`,
+          : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${column_name(selection.gridColumns)}-column grid`)
+          + (selection.authorName ? `. By ${selection.authorName}.` : ""),
         is_prediction: selection.prediction,
         includes_spoilers: selection.showSpoilers,
       }
@@ -457,6 +470,7 @@ export function create_season_manager(config) {
     prediction_button_manager,
     reset_prediction_button_manager,
     search_text_input_manager,
+    author_name_text_input_manager,
     show_spoilers_checkbox_manager,
     view_seasons_button_manager,
     three_columns_button_manager,

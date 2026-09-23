@@ -7,7 +7,6 @@ const MAX_PIXELS = 16_000_000
 const MAX_DIMENSION = 16_384
 const COLORS = {
   background: "#f3efe5",
-  card: "#fffdf7",
   ink: "#173e37",
   body: "#384c46",
   muted: "#596c63",
@@ -75,7 +74,7 @@ function fieldsFor(castaway, showSpoilers) {
 }
 
 /** Pure layout pass shared by rendering and geometry tests. */
-export function measureCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false, measure }) {
+export function measureCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false, authorName = "", measure }) {
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
   castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
@@ -96,6 +95,8 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
     .filter(Boolean)
     .join("  ·  ")
   y = text(subtitle, MARGIN, y + 8, WIDTH - MARGIN * 2, 22, 400, COLORS.muted)
+  const author = typeof authorName === "string" ? authorName.trim().replace(/\s+/g, " ") : ""
+  if (prediction && author) y = text(`Prediction by ${author}`, MARGIN, y + 8, WIDTH - MARGIN * 2, 22, 400, COLORS.ink)
   if (prediction) y = text("A PERSONAL PREDICTION · NOT ACTUAL RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 17, 700, COLORS.accent)
   if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 17, 700, COLORS.accent)
   y += 34
@@ -116,8 +117,8 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
       if (prediction) {
         operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: x + 16, y: y + 16, width: 64, height: 64 })
       }
-      const textX = x + padding
-      const textWidth = cardWidth - 2 * padding
+      const textX = x
+      const textWidth = cardWidth
       let bottom = y + imageHeight + padding
       bottom = text(valueText(castaway.name) || "Castaway", textX, bottom, textWidth, 30, 700, COLORS.ink, true)
       bottom += 14
@@ -225,7 +226,7 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 /** Render a full cast guide independently of the page size or scroll position. */
-export async function createCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false }) {
+export async function createCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false, authorName = "" }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
@@ -238,7 +239,7 @@ export async function createCastawayImage({ season, castaways, gridColumns = 4, 
     ctx.font = `${weight} ${size}px ${heading ? font : "Arial, sans-serif"}`
   }
   const measured = measureCastawayImage({
-    season, castaways, gridColumns, showSpoilers, prediction,
+    season, castaways, gridColumns, showSpoilers, prediction, authorName,
     measure: (text, size, weight, heading) => {
       setFont(size, weight, heading)
       return ctx.measureText(text).width
@@ -257,9 +258,9 @@ export async function createCastawayImage({ season, castaways, gridColumns = 4, 
 
   for (const operation of measured.operations) {
     if (operation.type === "card") {
-      roundedRect(ctx, operation.x, operation.y, operation.width, operation.height, 20)
-      ctx.fillStyle = COLORS.card
-      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(operation.x, operation.y + operation.height)
+      ctx.lineTo(operation.x + operation.width, operation.y + operation.height)
       ctx.strokeStyle = COLORS.border
       ctx.lineWidth = 1
       ctx.stroke()

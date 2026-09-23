@@ -50,12 +50,17 @@
         <Button manager={manager.preview_image_button_manager} />
       </div>
     </div>
-    <div class="grid-options" role="group" aria-label="Grid columns">
-      <span>Grid width</span>
-      <Button manager={manager.three_columns_button_manager} />
-      <Button manager={manager.four_columns_button_manager} />
-      <Button manager={manager.five_columns_button_manager} />
-      <span class="mobile-grid-note">On phones, cards fit two across; saved images use your choice.</span>
+    <div class="export-options">
+      <div class="grid-options" role="group" aria-label="Grid columns">
+        <span>Grid width</span>
+        <Button manager={manager.three_columns_button_manager} />
+        <Button manager={manager.four_columns_button_manager} />
+        <Button manager={manager.five_columns_button_manager} />
+        <span class="mobile-grid-note">On phones, profiles fit two across; saved images use your choice.</span>
+      </div>
+      {#if manager.is_prediction_mode}
+        <div class="author-input"><TextInput manager={manager.author_name_text_input_manager} /></div>
+      {/if}
     </div>
     <p class="export-hint">{manager.export_hint}</p>
     <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
@@ -185,7 +190,9 @@
   .cast-toolbar, .toolbar-actions { display: flex; align-items: center; gap: 1.2rem; }
   .cast-toolbar { justify-content: space-between; }
   .search { max-width: 38.4rem; min-width: 0; flex: 1; }
-  .grid-options { display: flex; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.6rem; font-size: 1.36rem; color: var(--snuff-muted); }
+  .export-options { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1.6rem 2.4rem; margin-top: 1.6rem; }
+  .author-input { width: min(100%, 32rem); }
+  .grid-options { display: flex; align-items: center; flex-wrap: wrap; gap: 0.8rem; font-size: 1.36rem; color: var(--snuff-muted); }
   .grid-options > span:first-child { margin-right: 0.4rem; }
   .mobile-grid-note { display: none; }
   .cast-mode { display: flex; gap: 0.56rem; margin-bottom: 1.6rem; }
@@ -207,12 +214,12 @@
   .export-preview.preview-zoomed { width: 160%; min-width: 112rem; max-width: none; }
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
   .cast-grid { display: grid; grid-template-columns: repeat(var(--cast-grid-columns, 4), minmax(0, 1fr)); gap: 2.4rem; }
-  .cast-card { background: var(--snuff-card); border: 1px solid var(--snuff-border); border-radius: 1.6rem; overflow: hidden; min-width: 0; }
-  .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: var(--portrait-aspect-ratio, 1.2); overflow: hidden; }
+  .cast-card { border-bottom: 1px solid var(--snuff-border); padding-bottom: 2rem; min-width: 0; }
+  .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: var(--portrait-aspect-ratio, 1.2); border-radius: 1.2rem; overflow: hidden; }
   .portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: var(--portrait-position, center 25%); }
   .photo-fallback { width: 100%; height: 100%; display: grid; place-content: center; text-align: center; gap: 0.8rem; color: var(--snuff-muted); }
   .photo-fallback span { font-size: 4.8rem; }
-  .person-content { padding: 1.92rem; min-width: 0; }
+  .person-content { padding-top: 1.92rem; min-width: 0; }
   .person-heading { display: flex; gap: 0.96rem; justify-content: space-between; align-items: start; }
   h3 { font-size: 2.08rem; line-height: 1.2; letter-spacing: -.02em; margin: 0; overflow-wrap: anywhere; }
   .age { color: var(--snuff-muted); font-size: 1.44rem; border: 1px solid var(--snuff-border); border-radius: 50%; min-width: 3.2rem; height: 3.2rem; display: grid; place-content: center; flex-shrink: 0; }
@@ -244,7 +251,8 @@
     .toolbar-actions { justify-content: space-between; }
     .cast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.28rem; }
     .mobile-grid-note { display: block; flex-basis: 100%; font-size: 1.2rem; line-height: 1.5; }
-    .person-content { padding: 1.28rem; }
+    .author-input { width: 100%; }
+    .person-content { padding-top: 1.28rem; }
     .person-heading { gap: 0.48rem; }
     h3 { font-size: 1.68rem; }
     .age { font-size: 1.2rem; min-width: 2.56rem; height: 2.56rem; }

@@ -111,10 +111,16 @@ or **Close preview**. Generating a preview does not download anything. You can
 choose **3 across**, **4 across** (the default), or **5 across** for the page and saved image,
 in either Cast guide or My prediction. Phones keep two readable page columns;
 the PNG always uses the selected count. Changing the count clears the old
-preview and preserves prediction ranks. Grid cards and PNGs include all available
-profile details and expand to fit them. Saved images use compact text and credit
-the photos once in the footer. Search filters the people included in the export.
+preview and preserves prediction ranks. The grid and PNGs include all available
+profile details and expand to fit them. Profiles use the full photo width over the
+page background, with subtle divider lines instead of filled cards. Saved images
+use compact text and credit the photos once in the footer. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
+
+In **My prediction**, enter **Your name (optional)** to add a byline to the image.
+Leave it blank for an unnamed prediction. The regular cast guide has no name
+input or byline. Changing the name clears the old preview; the name stays while
+switching modes and grid widths on the current page.
 
 Choose **My prediction** to arrange the entire cast with each person's **Up**
 and **Down** buttons. Number 1 is the predicted winner; the last number is the
