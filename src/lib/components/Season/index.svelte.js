@@ -249,7 +249,7 @@ export function create_season_manager(config) {
   })
   const grid_description = $derived(`${column_name(grid_columns)}-column grid`)
   const export_hint = $derived(is_prediction_mode
-    ? "Your order is saved in this page’s URL, so you can refresh or bookmark it."
+    ? "Your order is saved in this page’s URL, so you can refresh or share the link and maintain your ordering."
     : `Castaways are listed alphabetically by name. Preview the ${grid_description} with full profiles, then save it as a PNG.`)
 
   function get_prediction_controls(person) {

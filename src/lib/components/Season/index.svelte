@@ -47,7 +47,7 @@
       <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>{manager.is_prediction_mode ? "Show actual placements (spoilers)" : "Show results & spoilers"}</label></div>
       <div class="toolbar-preview"><Button manager={manager.preview_image_button_manager} /></div>
     </div>
-    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}#1 is your predicted winner. #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down to choose every place.{/if}</p>
+    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}#1 is your predicted winner. #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down buttons or drag and drop to reorder positions.{/if}</p>
     {#if manager.is_show_actual_placements}<p class="placements-hint">Red numbers show actual finishing places recorded so far. Unrecorded places stay blank.</p>{/if}
     <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
     <div aria-live="polite">
