@@ -338,8 +338,18 @@ export function create_season_manager(config) {
       prediction_url_initialized = true
       prediction_url_pathname = window.location.pathname
       restore_prediction_url()
-      window.addEventListener("popstate", restore_prediction_url)
+      window.addEventListener("popstate", after_prediction_navigation)
     })
+  }
+
+  async function after_prediction_navigation() {
+    // Initial afterNavigate runs before SvelteKit finishes starting its router.
+    // Defer shallow URL replacement until that callback and hydration finish.
+    await tick()
+    initialize_prediction_url()
+    const restored = restore_prediction_url()
+    // Only canonicalize recognized links; leave malformed/unrelated URLs alone.
+    if (restored) persist_prediction_url()
   }
 
   function restore_prediction_url() {
@@ -350,7 +360,7 @@ export function create_season_manager(config) {
     const next_mode = restored !== null
     const order_changed = restored && JSON.stringify(restored.order) !== JSON.stringify(prediction_order)
     const name_changed = restored && restored.authorName !== author_name
-    if (next_mode === is_prediction_mode && !order_changed && !name_changed) return
+    if (next_mode === is_prediction_mode && !order_changed && !name_changed) return restored
     set_show_spoilers(false)
     end_prediction_drag()
     if (restored) {
@@ -362,6 +372,7 @@ export function create_season_manager(config) {
     is_prediction_mode = next_mode
     prediction_announcement = restored ? "Prediction order restored from this link." : ""
     invalidate_saved_image()
+    return restored
   }
 
   function persist_prediction_url() {
@@ -509,7 +520,7 @@ export function create_season_manager(config) {
 
   function dispose() {
     disposed = true
-    if (prediction_url_initialized) window.removeEventListener("popstate", restore_prediction_url)
+    if (prediction_url_initialized) window.removeEventListener("popstate", after_prediction_navigation)
     spoilers_revision++
     spoilers_request?.abort()
     invalidate_saved_image()
@@ -555,7 +566,7 @@ export function create_season_manager(config) {
     drop_prediction,
     end_prediction_drag,
     initialize_prediction_url,
-    restore_prediction_url,
+    after_prediction_navigation,
     dispose,
   }
 }

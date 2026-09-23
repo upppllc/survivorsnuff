@@ -144,9 +144,27 @@ Switching back to **Cast guide** restores its alphabetical order and existing
 export behavior. Prediction picks remain available while switching modes and
 grid widths on the current page. Prediction order and the optional name are saved
 in the URL as you edit; refresh, bookmark, or copy that URL to restore both. Older
-order-only links still work. Returning to Cast guide clears the prediction from
+order-only and named links still work and automatically shorten when opened,
+preserving the picks, name, unrelated query parameters, and hash without reloading
+or adding a browser history entry. Returning to Cast guide clears the prediction from
 the current URL. **Reset to alphabetical**, separated below the grid,
 starts the prediction over and updates its URL.
+
+Compact links use `?prediction=3.51.ABCDEFGHIJKLMNOPQRSTU&name=Jordan`: the format
+version, season number, and permanent castaway codes in prediction order. The
+optional name is a separate parameter. The entire prediction lives in the URL;
+there is no saved prediction record or extra database request.
+
+`src/lib/data/prediction-codes.js` freezes the public identity/code mapping for
+seasons 1–51. Codes were assigned once alphabetically, not from results, and must
+never be reassigned or reused. Add a new season's verified public cast with unused
+single-character codes (`A–Z`, `a–z`, `0–9`); when adding a person to an existing
+season, retain every existing assignment. Match stable database IDs first and
+unique public names second so season 51's offline baseline shares the same codes.
+Do not derive codes from runtime array positions. Extend the registry tests when
+adding seasons. Unknown or ambiguous cast records retain the longer version 2
+format until their identity mapping is reviewed; an unrelated `name` query
+parameter also keeps the version 2 format rather than being overwritten.
 
 Spoiler-free pages show the whole cast with equal visual treatment in
 alphabetical name order. Generic promotional sections do not feature selected

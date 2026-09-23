@@ -4,7 +4,7 @@
   import { afterNavigate } from "$app/navigation"
 
   let { manager, featured = false } = $props()
-  afterNavigate(() => manager.restore_prediction_url())
+  afterNavigate(() => manager.after_prediction_navigation())
   $effect(() => {
     const active_manager = manager
     untrack(() => active_manager.initialize_prediction_url())

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { castaways as season51Castaways } from "./data/season-51.js"
+import { predictionCodes } from "./data/prediction-codes.js"
+import { predictionCastawayKey } from "./predictions.js"
 import { readPredictionUrl, writePredictionUrl } from "./prediction-url.js"
 
 const castaways = [
@@ -97,7 +99,9 @@ test("actual outcomes and backend input order cannot change a neutral prediction
 test("the complete season 51 order fits a practical bookmark URL", () => {
   const url = writePredictionUrl(base, 51, season51Castaways, [], "Jordan")
   assert.equal(readPredictionUrl(url, 51, season51Castaways).order.length, season51Castaways.length)
-  assert.ok(url.href.length < 2000, `URL length was ${url.href.length}`)
+  assert.equal(url.searchParams.get("prediction"), "3.51.ABCDEFGHIJKLMNOPQRSTU")
+  assert.equal(url.searchParams.get("name"), "Jordan")
+  assert.ok(url.href.length < 150, `URL length was ${url.href.length}`)
 })
 
 test("author names round-trip safely with Unicode and URL-sensitive characters", () => {
@@ -153,4 +157,132 @@ test("malformed named payloads and unsupported versions never enable predictions
     assert.equal(readPredictionUrl(encodedUrl(payload), 51, castaways), null)
   }
   assert.equal(readPredictionUrl("not a URL", 51, castaways), null)
+})
+
+test("all 51 frozen rosters round-trip named reverse orders independently of backend outcomes and order", () => {
+  assert.equal(Object.keys(predictionCodes).length, 51)
+  for (const [seasonNumber, registry] of Object.entries(predictionCodes)) {
+    const people = registry.map(([, id, name], index) => ({ id, name, result_order: index + 1 }))
+    const order = [...people].reverse().map(predictionCastawayKey)
+    const authorName = `Zoë + Jordan #${seasonNumber}`
+    const source = new URL(`/seasons/${seasonNumber}?source=friend#castaways`, base)
+    const url = writePredictionUrl(source, seasonNumber, people, order, `  ${authorName}  `)
+    assert.equal(url.searchParams.get("prediction"), `3.${seasonNumber}.${[...registry].reverse().map(([code]) => code).join("")}`)
+    const changed = [...people].reverse().map((person) => ({ ...person, result_order: people.length + 1 - person.result_order, is_on_jury: true }))
+    assert.deepEqual(readPredictionUrl(url, seasonNumber, changed), { order, authorName })
+    assert.equal(writePredictionUrl(url, seasonNumber, changed, order, authorName).href, url.href)
+    assert.equal(url.searchParams.get("source"), "friend")
+    assert.equal(url.hash, "#castaways")
+  }
+})
+
+test("Jordan's existing season 51 link migrates to compact codes without changing any pick", () => {
+  const firstNames = ["Maggie", "Danny", "Aaliyah", "Carter", "Devin", "Jenna", "Linnea", "Alexis", "Patt", "Lewis", "Ori", "Angelica", "Cristian", "Mike", "An", "Eric", "Brady", "Kristin", "Rob", "Ana", "Sharonda"]
+  const registryEntries = firstNames.map((firstName) => {
+    const entry = predictionCodes["51"].find(([, , name]) => name.startsWith(`${firstName} `))
+    assert.ok(entry, `Missing ${firstName}`)
+    return entry
+  })
+  const legacy = encodedUrl([2, "51", registryEntries.map(([, id, name]) => [`id:${id}`, name]), "Jordan"])
+  const restored = readPredictionUrl(legacy, 51, season51Castaways)
+  const expectedOrder = firstNames.map((firstName) => predictionCastawayKey(season51Castaways.find((person) => person.name.startsWith(`${firstName} `))))
+  assert.deepEqual(restored, { order: expectedOrder, authorName: "Jordan" })
+  const compact = writePredictionUrl(legacy, 51, season51Castaways, restored.order, restored.authorName)
+  assert.equal(compact.searchParams.get("prediction"), "3.51.PIAGJLOBSNREHQCKFMTDU")
+  assert.equal(compact.searchParams.get("name"), "Jordan")
+  assert.deepEqual(readPredictionUrl(compact, 51, season51Castaways), restored)
+  const legacyV1 = encodedUrl([1, "51", registryEntries.map(([, id, name]) => [`id:${id}`, name])])
+  const oldOrder = readPredictionUrl(legacyV1, 51, season51Castaways)
+  const upgradedV1 = writePredictionUrl(legacyV1, 51, season51Castaways, oldOrder.order, oldOrder.authorName)
+  assert.deepEqual(readPredictionUrl(upgradedV1, 51, season51Castaways), { order: expectedOrder, authorName: "" })
+  assert.equal(upgradedV1.searchParams.has("name"), false)
+})
+
+test("compact links resolve public identities across backend and fallback IDs", () => {
+  const backendCast = predictionCodes["51"].map(([, id, name]) => ({ id, name }))
+  const backendOrder = [...backendCast].reverse().map(predictionCastawayKey)
+  const url = writePredictionUrl(base, 51, backendCast, backendOrder, "Jordan")
+  const restored = readPredictionUrl(url, 51, season51Castaways)
+  assert.deepEqual(restored.order, [...season51Castaways].sort((a, b) => a.name.localeCompare(b.name, "en")).reverse().map(predictionCastawayKey))
+  assert.equal(restored.authorName, "Jordan")
+})
+
+test("compact decoding rejects duplicate, unknown, unavailable, malformed, and cross-season codes", () => {
+  for (const value of ["3.51.AA", "3.51.AZ", "3.51.a", "3.51.", "3.51.A-B", "3.51.A.B", "3.051.A", "3.-1.A", "3.50.A", "4.51.A", `3.51.${"A".repeat(63)}`]) {
+    const url = new URL(base)
+    url.searchParams.set("prediction", value)
+    assert.equal(readPredictionUrl(url, 51, season51Castaways), null, value)
+  }
+  const url = new URL(base)
+  url.searchParams.set("prediction", "3.51.B")
+  assert.equal(readPredictionUrl(url, 51, [season51Castaways.find((person) => person.name === "Aaliyah Puglia")]), null)
+  assert.equal(readPredictionUrl(url, 51, castaways), null, "an unmapped cast cannot guess a compact order")
+})
+
+test("missing known castaways are appended alphabetically without reassigning permanent codes", () => {
+  const people = predictionCodes["51"].slice(0, 3).map(([, id, name]) => ({ id, name }))
+  const url = new URL(base)
+  url.searchParams.set("prediction", "3.51.C")
+  const restored = readPredictionUrl(url, 51, [...people].reverse())
+  assert.deepEqual(restored, { order: [people[2], people[0], people[1]].map(predictionCastawayKey), authorName: "" })
+  assert.equal(writePredictionUrl(url, 51, people, restored.order).searchParams.get("prediction"), "3.51.CAB")
+})
+
+test("compact names normalize special characters, omit blanks, and are removed on exit", () => {
+  const name = "  Zoë\n Jordan + & # / ? 🙂  "
+  const expected = "Zoë Jordan + & # / ? 🙂"
+  const named = writePredictionUrl(base, 51, season51Castaways, [], name)
+  assert.equal(named.searchParams.get("name"), expected)
+  assert.equal(readPredictionUrl(named, 51, season51Castaways).authorName, expected)
+  assert.equal(named.hash, "#castaways")
+  for (const blank of ["", "  \n ", null]) {
+    const cleared = writePredictionUrl(named, 51, season51Castaways, [], blank)
+    assert.equal(cleared.searchParams.has("name"), false)
+    assert.equal(readPredictionUrl(cleared, 51, season51Castaways).authorName, "")
+  }
+  const omitted = writePredictionUrl(named, 51, season51Castaways, [])
+  assert.equal(omitted.searchParams.has("name"), false)
+  assert.equal(writePredictionUrl(named, 51, season51Castaways, null, expected).href, base)
+  const longName = writePredictionUrl(base, 51, season51Castaways, [], `${"a".repeat(99)}🙂more`)
+  assert.equal(readPredictionUrl(longName, 51, season51Castaways).authorName, `${"a".repeat(99)}🙂`)
+})
+
+test("compact links reject repeated prediction/name parameters and oversized names", () => {
+  const original = writePredictionUrl(base, 51, season51Castaways, [], "Jordan")
+  const duplicatePrediction = new URL(original)
+  duplicatePrediction.searchParams.append("prediction", "3.51.A")
+  assert.equal(readPredictionUrl(duplicatePrediction, 51, season51Castaways), null)
+  const duplicateName = new URL(original)
+  duplicateName.searchParams.append("name", "Other")
+  assert.equal(readPredictionUrl(duplicateName, 51, season51Castaways), null)
+  const oversized = new URL(original)
+  oversized.searchParams.set("name", "x".repeat(20_001))
+  assert.equal(readPredictionUrl(oversized, 51, season51Castaways), null)
+})
+
+test("unmapped casts and future seasons retain version 2 fallback support", () => {
+  for (const seasonNumber of [51, 52]) {
+    const order = ["id:zoe", "id:ben", "id:amy"]
+    const url = writePredictionUrl(base, seasonNumber, castaways, order, "Jordan")
+    assert.equal(JSON.parse(url.searchParams.get("prediction"))[0], 2)
+    assert.equal(url.searchParams.has("name"), false)
+    assert.deepEqual(readPredictionUrl(url, seasonNumber, castaways), { order, authorName: "Jordan" })
+  }
+  const compact = writePredictionUrl(base, 51, season51Castaways, [], "Jordan")
+  const fallback = writePredictionUrl(compact, 52, castaways, [], "Jordan")
+  assert.equal(fallback.searchParams.has("name"), false)
+  assert.equal(readPredictionUrl(fallback, 52, castaways).authorName, "Jordan")
+})
+
+test("unrelated name parameters survive prediction writing, fallback, and exit", () => {
+  const source = new URL(base)
+  source.searchParams.append("name", "Unrelated")
+  source.searchParams.append("name", "Also unrelated")
+  const original = source.href
+  const written = writePredictionUrl(source, 51, season51Castaways, [], "Jordan")
+  assert.equal(JSON.parse(written.searchParams.get("prediction"))[0], 2)
+  assert.deepEqual(written.searchParams.getAll("name"), ["Unrelated", "Also unrelated"])
+  assert.equal(readPredictionUrl(written, 51, season51Castaways).authorName, "Jordan")
+  assert.equal(writePredictionUrl(written, 51, season51Castaways).href, original)
+  assert.equal(source.href, original)
 })
