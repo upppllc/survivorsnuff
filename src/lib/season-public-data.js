@@ -2,7 +2,7 @@ import { sortCastawaysAlphabetically } from "./castaways.js"
 import { formatSeasonDate, seasonDateTimestamp } from "./season-dates.js"
 
 const seasonFields = [
-  "id", "season_number", "title", "location", "contestant_count", "photo_credit", "source_url",
+  "id", "season_number", "title", "location", "contestant_count", "photo_credit", "photo_source_url", "source_url",
 ]
 const castawayFields = [
   "id", "season_number", "name", "age", "occupation", "hometown", "current_residence", "residence",

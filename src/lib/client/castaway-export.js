@@ -115,7 +115,9 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
       operations.push(card)
       const padding = layout === "grid" ? 24 : 30
       const imageWidth = layout === "grid" ? cardWidth : 240
-      const imageHeight = layout === "grid" ? cardWidth * 1.05 : 288
+      const imageHeight = Number(season?.season_number) === 51
+        ? imageWidth * 1.25
+        : layout === "grid" ? cardWidth * 1.05 : 288
       const imageX = layout === "grid" ? x : x + padding
       const imageY = layout === "grid" ? y : y + padding
       operations.push({ type: "photo", index: index + column, x: imageX, y: imageY, width: imageWidth, height: imageHeight })
@@ -286,8 +288,8 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
       const sourceWidth = operation.width / cropScale
       const sourceHeight = operation.height / cropScale
       const sourceX = (photo.naturalWidth - sourceWidth) / 2
-      // Portraits are aligned near the top so faces remain in frame.
-      const sourceY = (photo.naturalHeight - sourceHeight) * 0.15
+      // The full-length season 51 portraits need top alignment to keep faces in frame.
+      const sourceY = (photo.naturalHeight - sourceHeight) * (Number(season?.season_number) === 51 ? 0 : 0.15)
       ctx.save()
       roundedRect(ctx, operation.x, operation.y, operation.width, operation.height, 18)
       ctx.clip()

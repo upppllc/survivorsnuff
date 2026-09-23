@@ -8,7 +8,7 @@
   })
 </script>
 
-<section class="season-page">
+<section class="season-page" style:--portrait-position={manager.season_prepped.portrait_position} style:--portrait-aspect-ratio={manager.season_prepped.portrait_aspect_ratio}>
   {#if !featured}
     <div class="back-link"><Button manager={manager.view_seasons_button_manager} /></div>
     <header class="season-intro">
@@ -104,7 +104,14 @@
       <div class="empty-state"><h3>{manager.castaways_prepped.length ? "No castaways match that search." : "The cast is still under wraps."}</h3><p>{manager.castaways_prepped.length ? "Try a different name, hometown, or occupation." : "Check back for cast announcements and photos."}</p>{#if manager.search}<Button manager={manager.clear_search_button_manager} />{/if}</div>
     {/if}
     {#if manager.season_prepped.source_url}
-      <p class="photo-credit">Cast information and photos: <a href={manager.season_prepped.source_url} target="_blank" rel="noopener noreferrer">CBS / Paramount</a>. Ages at cast announcement.</p>
+      <p class="photo-credit">
+        {manager.season_prepped.photo_source_url ? "Cast information:" : "Cast information and photos:"}
+        <a href={manager.season_prepped.source_url} target="_blank" rel="noopener noreferrer">CBS / Paramount</a>.
+        {#if manager.season_prepped.photo_source_url}
+          Photos: <a href={manager.season_prepped.photo_source_url} target="_blank" rel="noopener noreferrer">{manager.season_prepped.photo_credit}</a>.
+        {/if}
+        Ages at cast announcement.
+      </p>
     {/if}
   </section>
 
@@ -169,8 +176,8 @@
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
   .cast-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4rem; }
   .cast-card { background: var(--snuff-card); border: 1px solid var(--snuff-border); border-radius: 1.6rem; overflow: hidden; min-width: 0; }
-  .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: 1.2; overflow: hidden; }
-  .portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center 25%; }
+  .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: var(--portrait-aspect-ratio, 1.2); overflow: hidden; }
+  .portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: var(--portrait-position, center 25%); }
   .photo-fallback { width: 100%; height: 100%; display: grid; place-content: center; text-align: center; gap: 0.8rem; color: var(--snuff-muted); }
   .photo-fallback span { font-size: 4.8rem; }
   .person-content { padding: 1.92rem; min-width: 0; }
@@ -215,7 +222,7 @@
     .occupation { font-size: 1.36rem; }
     .hometown { font-size: 1.248rem; }
     .cast-details .cast-card { grid-template-columns: 1fr; }
-    .cast-details .portrait-wrap { aspect-ratio: 1.5; min-height: 0; }
+    .cast-details .portrait-wrap { aspect-ratio: var(--portrait-aspect-ratio, 1.5); min-height: 0; }
     .cast-details .person-content { padding: 2rem; }
     .episode-card { flex-wrap: wrap; }
   }

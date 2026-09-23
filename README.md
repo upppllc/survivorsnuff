@@ -56,12 +56,20 @@ and theme behavior, and style custom cast cards locally.
 Historical seasons, castaways, episodes, and recap posts come from live
 Contibase tables. `src/lib/server/seasons.js` combines current-season records
 with the verified baseline in `src/lib/data/season-51.js`. Backend edits take
-precedence; local photo and source metadata remain available. The current cast
-guide also works from its baseline if Contibase is unavailable.
+precedence; versioned photo references and source metadata remain available.
+Current cast facts also remain available from the baseline if Contibase is
+unavailable; photos depend on Contibase storage.
 
-Official season 51 photos live in `static/castaways/51/`. Each castaway records
-the original photo URL, source URL, and CBS credit. Ages are those published at
-the cast announcement. See [the source notes](docs/season-51-sources.md).
+The 21 official season 51 portraits from [Deadline's CBS cast gallery](https://deadline.com/gallery/survivor-season-51-cast-photos-cbs/)
+are public, permanent WebP objects in the Contibase `s51` storage folder. They
+were converted at high quality from the 1280-pixel-wide source photos. Each
+castaway's versioned record contains an `image_storage_id`, the original
+Deadline JPEG `photo_source_url` for provenance, and Robert Voets / CBS credit.
+The stored bytes were verified against the converted WebP files before the
+superseded JPEGs were removed from local files and `s51` storage. Season 51
+portraits use a taller 4:5 frame aligned to the top in the cast cards and both
+PNG export layouts. Ages are those published at the cast announcement.
+See [the source notes](docs/season-51-sources.md).
 
 To add the checked-in season 51 facts to a configured backend:
 
@@ -74,8 +82,9 @@ node --env-file=.env scripts/import-season-51.mjs --write
 ```
 
 The importer never edits or deletes existing records. Re-running it skips
-records already present. Photo files are deployed with the site; the current
-Contibase castaway table has no photo columns.
+records already present. The current Contibase castaway table has no photo
+columns, so storage references and photo credits remain in the versioned data
+module. The importer does not upload photos or change the database schema.
 
 Reviewed preseason profile summaries live in `src/lib/data/season-51-profiles.js`.
 They appear in both cast views and image exports without enabling spoilers.
@@ -110,7 +119,8 @@ load only after someone explicitly reveals spoilers. Changing the export
 settings clears its preview. See [the project conventions](AGENTS.md).
 
 Images are rendered locally in the browser, independently of the page's scroll
-position or screen size. Current photos load from the site; archive photos use
-the same-origin Contibase storage proxy. A failed photo produces an error so
-the downloaded guide does not silently omit a castaway's picture. The generated
-PNG remains available until the preview is closed or its settings change.
+position or screen size. Current and archive photos use the same-origin
+Contibase storage proxy for the page and both PNG layouts. A failed photo
+produces an error so the downloaded guide does not silently omit a castaway's
+picture. The generated PNG remains available until the preview is closed or
+its settings change.

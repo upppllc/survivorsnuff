@@ -46,6 +46,8 @@ export function create_season_manager(config) {
   const is_upcoming = $derived(seasonDateTimestamp(season.first_air_time) > Date.now())
   const season_prepped = $derived({
     ...season,
+    portrait_position: Number(season.season_number) === 51 ? "center top" : "center 25%",
+    portrait_aspect_ratio: Number(season.season_number) === 51 ? "4 / 5" : null,
     display_title: season.title && season.title !== `Survivor ${season.season_number}` ? season.title : "",
     display_summary: is_show_spoilers || season.summary_spoiler_free === true ? season.twist_summary : "",
   })
