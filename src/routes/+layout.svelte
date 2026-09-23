@@ -47,7 +47,7 @@
   .brand :global(.logo_text) { font-family: "Proxima Vara", Arial, sans-serif; font-size: 2.1rem; letter-spacing: -.05rem; color: var(--snuff-text); font-weight: 750; line-height: 1.2; }
   .nav-extra { display: flex; align-items: center; gap: 1.8rem; }
   main { flex: 1; }
-  .site-footer { width: calc(100% - 4.8rem); max-width: 1120px; border-top: 1px solid var(--snuff-border); padding: 3.5rem 0 3.2rem; margin: 3.2rem auto 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.6rem; }
+  .site-footer { width: calc(100% - clamp(4.8rem, 6vw, 9.6rem)); border-top: 1px solid var(--snuff-border); padding: 3.5rem 0 3.2rem; margin: 3.2rem auto 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.6rem; }
   .site-footer p { color: var(--snuff-muted); font-size: 1.4rem; line-height: 1.5; margin: .8rem 0 0; }
   .footer-links { display: flex; gap: 1.4rem; padding-top: .5rem; }
   .site-footer .disclaimer { width: 100%; font-size: 1.15rem; margin-top: 1.6rem; line-height: 1.5; }

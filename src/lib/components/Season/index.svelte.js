@@ -6,7 +6,7 @@ import { prepareCastawayShareFile, shareCastawayFile } from "$lib/client/castawa
 import { predictionCastawayKey, orderPredictionCastaways, movePredictionCastaway } from "$lib/predictions.js"
 
 export function create_season_manager(config) {
-  let grid_columns = $state(3)
+  let grid_columns = $state(4)
   let is_prediction_mode = $state(false)
   let prediction_order = $state([])
   let prediction_announcement = $state("")
@@ -181,6 +181,14 @@ export function create_season_manager(config) {
     is_compressed: true,
     on_click: () => set_grid_columns(4),
   })
+  const five_columns_button_manager = create_button_manager({
+    type: "outlined",
+    text: "5 across",
+    aria_label: () => grid_columns === 5 ? "5 across, selected" : "5 across",
+    selected_type: () => grid_columns === 5 ? "selected" : null,
+    is_compressed: true,
+    on_click: () => set_grid_columns(5),
+  })
   const preview_image_button_manager = create_button_manager({
     text: () => is_generating ? "Creating preview…" : is_prediction_mode ? "Preview prediction" : "Preview image",
     aria_label: () => is_generating ? "Creating image preview" : is_prediction_mode ? "Preview prediction" : "Preview image",
@@ -237,7 +245,7 @@ export function create_season_manager(config) {
     is_compressed: true,
     on_click: () => search_text_input_manager.set_val(""),
   })
-  const grid_description = $derived(grid_columns === 4 ? "four-column grid" : "three-column grid")
+  const grid_description = $derived(`${column_name(grid_columns)}-column grid`)
   const export_hint = $derived(is_prediction_mode
     ? `Your ${grid_description} image includes all ${prediction_castaways.length} castaways and their profiles in your chosen order, with numbered photo badges. Your picks stay while you switch modes; save an image before leaving this page.`
     : `Castaways are listed alphabetically by name. Preview the ${grid_description} with full profiles, then save it as a PNG.${search_query ? ` Includes the ${filtered_castaways.length} matching castaways.` : ""}`)
@@ -307,8 +315,12 @@ export function create_season_manager(config) {
     }
   }
 
+  function column_name(value) {
+    return value === 3 ? "three" : value === 5 ? "five" : "four"
+  }
+
   function set_grid_columns(value) {
-    const next_columns = value === 4 ? 4 : 3
+    const next_columns = value === 3 || value === 5 ? value : 4
     if (disposed || grid_columns === next_columns) return
     grid_columns = next_columns
     invalidate_saved_image()
@@ -377,10 +389,10 @@ export function create_season_manager(config) {
         ...result,
         share_file: prepareCastawayShareFile(result),
         url: URL.createObjectURL(result.blob),
-        description: `${selection.prediction ? "My prediction · " : ""}${selection.castaways.length} castaways · ${selection.gridColumns === 4 ? "Four" : "Three"}-column grid · ${result.width} × ${result.height} px`,
+        description: `${selection.prediction ? "My prediction · " : ""}${selection.castaways.length} castaways · ${selection.gridColumns}-column grid · ${result.width} × ${result.height} px`,
         alt: selection.prediction
           ? `My Survivor ${selection.season.season_number} prediction with ${selection.castaways.length} numbered picks, predicted winner first`
-          : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${selection.gridColumns === 4 ? "four" : "three"}-column grid`,
+          : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${column_name(selection.gridColumns)}-column grid`,
         is_prediction: selection.prediction,
         includes_spoilers: selection.showSpoilers,
       }
@@ -449,6 +461,7 @@ export function create_season_manager(config) {
     view_seasons_button_manager,
     three_columns_button_manager,
     four_columns_button_manager,
+    five_columns_button_manager,
     get grid_columns() { return grid_columns },
     preview_image_button_manager,
     share_photo_button_manager,

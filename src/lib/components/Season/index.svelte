@@ -54,6 +54,7 @@
       <span>Grid width</span>
       <Button manager={manager.three_columns_button_manager} />
       <Button manager={manager.four_columns_button_manager} />
+      <Button manager={manager.five_columns_button_manager} />
       <span class="mobile-grid-note">On phones, cards fit two across; saved images use your choice.</span>
     </div>
     <p class="export-hint">{manager.export_hint}</p>
@@ -168,7 +169,7 @@
 </section>
 
 <style>
-  .season-page { max-width: 1120px; margin: 0 auto; }
+  .season-page { min-width: 0; }
   h1, h2, h3, h4 { font-family: inherit; color: var(--snuff-text); }
   .back-link { display: inline-block; margin: 1.6rem 0 3.2rem; text-decoration: none; font-weight: 600; }
   .eyebrow { font-size: 1.2rem; letter-spacing: .16em; font-weight: 750; color: var(--snuff-muted); margin: 0 0 0.96rem; }
@@ -205,7 +206,7 @@
   .export-preview { display: block; width: 100%; height: auto; -webkit-touch-callout: default; user-select: auto; }
   .export-preview.preview-zoomed { width: 160%; min-width: 112rem; max-width: none; }
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
-  .cast-grid { display: grid; grid-template-columns: repeat(var(--cast-grid-columns, 3), minmax(0, 1fr)); gap: 2.4rem; }
+  .cast-grid { display: grid; grid-template-columns: repeat(var(--cast-grid-columns, 4), minmax(0, 1fr)); gap: 2.4rem; }
   .cast-card { background: var(--snuff-card); border: 1px solid var(--snuff-border); border-radius: 1.6rem; overflow: hidden; min-width: 0; }
   .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: var(--portrait-aspect-ratio, 1.2); overflow: hidden; }
   .portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: var(--portrait-position, center 25%); }

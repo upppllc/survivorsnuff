@@ -108,11 +108,12 @@ sharing is unavailable, touch and hold the preview image for photo options.
 
 Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
 or **Close preview**. Generating a preview does not download anything. You can
-choose **3 across** (the default) or **4 across** for the page and saved image,
+choose **3 across**, **4 across** (the default), or **5 across** for the page and saved image,
 in either Cast guide or My prediction. Phones keep two readable page columns;
 the PNG always uses the selected count. Changing the count clears the old
 preview and preserves prediction ranks. Grid cards and PNGs include all available
-profile details and expand to fit them. Search filters the people included in the export.
+profile details and expand to fit them. Saved images use compact text and credit
+the photos once in the footer. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
 
 Choose **My prediction** to arrange the entire cast with each person's **Up**

@@ -75,7 +75,7 @@ function fieldsFor(castaway, showSpoilers) {
 }
 
 /** Pure layout pass shared by rendering and geometry tests. */
-export function measureCastawayImage({ season, castaways, gridColumns = 3, showSpoilers = false, prediction = false, measure }) {
+export function measureCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false, measure }) {
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
   castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
@@ -90,17 +90,17 @@ export function measureCastawayImage({ season, castaways, gridColumns = 3, showS
   }
 
   const title = `Survivor ${valueText(season?.season_number)}`.trim()
-  let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, WIDTH - MARGIN * 2, 20, 700, COLORS.accent)
-  y = text(title, MARGIN, y + 14, WIDTH - MARGIN * 2, 56, 700, COLORS.ink, true)
+  let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, WIDTH - MARGIN * 2, 19, 700, COLORS.accent)
+  y = text(title, MARGIN, y + 14, WIDTH - MARGIN * 2, 52, 700, COLORS.ink, true)
   const subtitle = [valueText(season?.title), `${castaways.length} castaways`, prediction ? `1 = predicted winner  ·  ${castaways.length} = first eliminated` : "Alphabetical by name"]
     .filter(Boolean)
     .join("  ·  ")
-  y = text(subtitle, MARGIN, y + 8, WIDTH - MARGIN * 2, 24, 400, COLORS.muted)
-  if (prediction) y = text("A PERSONAL PREDICTION · NOT ACTUAL RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 18, 700, COLORS.accent)
-  if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 18, 700, COLORS.accent)
+  y = text(subtitle, MARGIN, y + 8, WIDTH - MARGIN * 2, 22, 400, COLORS.muted)
+  if (prediction) y = text("A PERSONAL PREDICTION · NOT ACTUAL RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 17, 700, COLORS.accent)
+  if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 17, 700, COLORS.accent)
   y += 34
 
-  const columns = gridColumns === 4 ? 4 : 3
+  const columns = gridColumns === 3 || gridColumns === 5 ? gridColumns : 4
   const cardWidth = (WIDTH - 2 * MARGIN - GAP * (columns - 1)) / columns
   const cards = []
   for (let index = 0; index < castaways.length; index += columns) {
@@ -119,15 +119,11 @@ export function measureCastawayImage({ season, castaways, gridColumns = 3, showS
       const textX = x + padding
       const textWidth = cardWidth - 2 * padding
       let bottom = y + imageHeight + padding
-      bottom = text(valueText(castaway.name) || "Castaway", textX, bottom, textWidth, 32, 700, COLORS.ink, true)
+      bottom = text(valueText(castaway.name) || "Castaway", textX, bottom, textWidth, 30, 700, COLORS.ink, true)
       bottom += 14
       for (const field of fieldsFor(castaway, showSpoilers)) {
-        bottom = text(`${field.label}: ${field.text}`, textX, bottom, textWidth, 22)
+        bottom = text(`${field.label}: ${field.text}`, textX, bottom, textWidth, 20)
         bottom += 7
-      }
-      const credit = valueText(castaway.photo_credit ?? castaway.image_credit)
-      if (credit) {
-        bottom = text(credit, textX, bottom + 8, textWidth, 15, 400, COLORS.muted)
       }
       card.height = Math.ceil(bottom - y + padding)
       row.push(card)
@@ -139,10 +135,10 @@ export function measureCastawayImage({ season, castaways, gridColumns = 3, showS
   }
 
   y += 16
-  y = text("survivorsnuff.com", MARGIN, y, WIDTH - MARGIN * 2, 25, 700, COLORS.ink)
+  y = text("survivorsnuff.com", MARGIN, y, WIDTH - MARGIN * 2, 23, 700, COLORS.ink)
   const photoCredit = valueText(season?.photo_credit ?? season?.image_credit) || "Cast photos: CBS / Paramount"
-  y = text(photoCredit, MARGIN, y + 8, WIDTH - MARGIN * 2, 18, 400, COLORS.muted)
-  y = text("An independent fan guide. Survivor is a CBS / Paramount series.", MARGIN, y + 7, WIDTH - MARGIN * 2, 17, 400, COLORS.muted)
+  y = text(photoCredit, MARGIN, y + 8, WIDTH - MARGIN * 2, 17, 400, COLORS.muted)
+  y = text("An independent fan guide. Survivor is a CBS / Paramount series.", MARGIN, y + 7, WIDTH - MARGIN * 2, 16, 400, COLORS.muted)
   return { width: WIDTH, height: Math.ceil(y + 48), operations, cards, orderedCastaways: castaways }
 }
 
@@ -229,7 +225,7 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 /** Render a full cast guide independently of the page size or scroll position. */
-export async function createCastawayImage({ season, castaways, gridColumns = 3, showSpoilers = false, prediction = false }) {
+export async function createCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
@@ -322,7 +318,7 @@ export async function createCastawayImage({ season, castaways, gridColumns = 3, 
   }
   if (!blob) throw new Error("The cast image was too large for this browser. Try a desktop browser.")
   const seasonNumber = String(season?.season_number ?? "cast").replace(/[^a-z\d-]/gi, "")
-  const columnsSuffix = gridColumns === 4 ? "-4-columns" : ""
+  const columnsSuffix = `-${gridColumns === 3 || gridColumns === 5 ? gridColumns : 4}-columns`
   return {
     blob,
     filename: prediction
