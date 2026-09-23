@@ -79,11 +79,12 @@ function fieldsFor(castaway, layout, showSpoilers) {
 }
 
 /** Pure layout pass shared by rendering and geometry tests. */
-export function measureCastawayImage({ season, castaways, layout = "grid", showSpoilers = false, measure }) {
+export function measureCastawayImage({ season, castaways, layout = "grid", showSpoilers = false, prediction = false, measure }) {
   if (!["grid", "details"].includes(layout)) throw new Error("Choose a grid or detailed cast image.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
-  castaways = sortCastawaysAlphabetically(castaways)
-  showSpoilers = showSpoilers === true
+  prediction = prediction === true
+  castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
+  showSpoilers = !prediction && showSpoilers === true
 
   const operations = []
   const text = (content, x, y, width, size, weight = 400, color = COLORS.body, heading = false) => {
@@ -94,12 +95,13 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
   }
 
   const title = `Survivor ${valueText(season?.season_number)}`.trim()
-  let y = text("SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, WIDTH - MARGIN * 2, 20, 700, COLORS.accent)
+  let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, WIDTH - MARGIN * 2, 20, 700, COLORS.accent)
   y = text(title, MARGIN, y + 14, WIDTH - MARGIN * 2, 56, 700, COLORS.ink, true)
-  const subtitle = [valueText(season?.title), `${castaways.length} castaways`, "Alphabetical by name"]
+  const subtitle = [valueText(season?.title), `${castaways.length} castaways`, prediction ? `1 = predicted winner  ·  ${castaways.length} = first eliminated` : "Alphabetical by name"]
     .filter(Boolean)
     .join("  ·  ")
   y = text(subtitle, MARGIN, y + 8, WIDTH - MARGIN * 2, 24, 400, COLORS.muted)
+  if (prediction) y = text("A PERSONAL PREDICTION · NOT ACTUAL RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 18, 700, COLORS.accent)
   if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 18, 700, COLORS.accent)
   y += 34
 
@@ -121,6 +123,10 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
       const imageX = layout === "grid" ? x : x + padding
       const imageY = layout === "grid" ? y : y + padding
       operations.push({ type: "photo", index: index + column, x: imageX, y: imageY, width: imageWidth, height: imageHeight })
+      if (prediction) {
+        const size = layout === "grid" ? 64 : 56
+        operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: imageX + 16, y: imageY + 16, width: size, height: size })
+      }
       const textX = layout === "grid" ? x + padding : imageX + imageWidth + 30
       const textWidth = layout === "grid" ? cardWidth - 2 * padding : cardWidth - imageWidth - 3 * padding
       let bottom = layout === "grid" ? y + imageHeight + padding : y + padding
@@ -245,10 +251,11 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 /** Render a full cast guide independently of the page size or scroll position. */
-export async function createCastawayImage({ season, castaways, layout = "grid", showSpoilers = false }) {
+export async function createCastawayImage({ season, castaways, layout = "grid", showSpoilers = false, prediction = false }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
-  showSpoilers = showSpoilers === true
+  prediction = prediction === true
+  showSpoilers = !prediction && showSpoilers === true
   const font = await headingFont()
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d", { alpha: false })
@@ -257,7 +264,7 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
     ctx.font = `${weight} ${size}px ${heading ? font : "Arial, sans-serif"}`
   }
   const measured = measureCastawayImage({
-    season, castaways, layout, showSpoilers,
+    season, castaways, layout, showSpoilers, prediction,
     measure: (text, size, weight, heading) => {
       setFont(size, weight, heading)
       return ctx.measureText(text).width
@@ -295,6 +302,23 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
       ctx.clip()
       ctx.drawImage(photo, sourceX, sourceY, sourceWidth, sourceHeight, operation.x, operation.y, operation.width, operation.height)
       ctx.restore()
+    } else if (operation.type === "prediction_badge") {
+      ctx.save()
+      ctx.shadowColor = "rgba(0, 0, 0, 0.24)"
+      ctx.shadowBlur = 12
+      ctx.shadowOffsetY = 3
+      roundedRect(ctx, operation.x, operation.y, operation.width, operation.height, 12)
+      ctx.fillStyle = "#ffffff"
+      ctx.fill()
+      ctx.shadowColor = "transparent"
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetY = 0
+      ctx.fillStyle = COLORS.ink
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      setFont(operation.width * 0.5, 700, false)
+      ctx.fillText(String(operation.rank), operation.x + operation.width / 2, operation.y + operation.height / 2 + 1)
+      ctx.restore()
     } else if (operation.type === "text") {
       setFont(operation.size, operation.weight, operation.heading)
       ctx.fillStyle = operation.color
@@ -322,7 +346,9 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
   const seasonNumber = String(season?.season_number ?? "cast").replace(/[^a-z\d-]/gi, "")
   return {
     blob,
-    filename: `survivor-${seasonNumber}-cast-${layout}${showSpoilers ? "-with-results" : ""}.png`,
+    filename: prediction
+      ? `survivor-${seasonNumber}-prediction-${layout}.png`
+      : `survivor-${seasonNumber}-cast-${layout}${showSpoilers ? "-with-results" : ""}.png`,
     width: dimensions.width,
     height: dimensions.height,
   }

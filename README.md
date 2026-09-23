@@ -112,6 +112,18 @@ always use three columns; detailed PNGs use one castaway per row and expand to
 fit available information. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
 
+Choose **My prediction** to arrange the entire cast with each person's **Up**
+and **Down** buttons. Number 1 is the predicted winner; the last number is the
+predicted first elimination. **Preview prediction** uses that order in either
+layout, adds white rounded number badges to the photos, and labels the image as
+a personal prediction. It always excludes actual results. Reordering clears the
+old preview so the next saved image reflects the current picks.
+
+Switching back to **Cast guide** restores its alphabetical order and existing
+export behavior. Prediction picks remain available while switching modes and
+layouts on the current page; download or share the image before navigating away.
+**Reset to alphabetical** starts the prediction over.
+
 Spoiler-free pages show the whole cast with equal visual treatment in
 alphabetical name order. Generic promotional sections do not feature selected
 contestants. Results, tribe updates, episode titles, and unverified narrative

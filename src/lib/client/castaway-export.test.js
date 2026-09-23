@@ -102,6 +102,7 @@ test("outcome-ordered input is alphabetized without changing names or photo asso
   assert.equal(people[0].name, "Zoë Example", "sorting does not mutate input data")
   for (const layout of ["grid", "details"]) {
     const result = measureCastawayImage({ season, castaways: people, layout, measure })
+    assert.equal(result.operations.filter((operation) => operation.type === "prediction_badge").length, 0)
     assert.deepEqual(result.orderedCastaways.map((person) => person.image_url), ["/cast/ana.jpg", "/cast/brady.jpg", "/cast/zoe.jpg"])
     const photos = result.operations.filter((operation) => operation.type === "photo")
     for (const photo of photos) {
@@ -141,6 +142,70 @@ test("spoiler-free exports are identical when results, narratives, tribe assignm
     assert.match(revealedText, /Merged Tribe/)
     assert.match(revealedText, /Jury member/)
     if (layout === "details") assert.match(revealedText, /Won the final vote/)
+  }
+})
+
+test("prediction exports preserve the chosen order and associate numbered badges with each photo in both layouts", () => {
+  const people = [
+    { name: "Zoë Example", image_url: "/cast/zoe.webp" },
+    { name: "Ana Example", image_url: "/cast/ana.webp" },
+    { name: "Brady Example", image_url: "/cast/brady.webp" },
+  ]
+  for (const layout of ["grid", "details"]) {
+    const result = measureCastawayImage({ season, castaways: people, layout, prediction: true, measure })
+    assert.deepEqual(result.orderedCastaways, people)
+    assert.notEqual(result.orderedCastaways, people, "the layout owns its array without mutating the chosen order")
+    const badges = result.operations.filter((operation) => operation.type === "prediction_badge")
+    assert.deepEqual(badges.map((badge) => badge.rank), [1, 2, 3])
+    const photos = result.operations.filter((operation) => operation.type === "photo")
+    for (const [index, photo] of photos.entries()) {
+      assert.equal(photo.index, index)
+      const badge = badges[index]
+      assert.equal(badge.index, photo.index)
+      assert.ok(badge.x >= photo.x && badge.x + badge.width <= photo.x + photo.width)
+      assert.ok(badge.y >= photo.y && badge.y + badge.height <= photo.y + photo.height)
+      assert.equal(badge.width, badge.height)
+      const nextText = result.operations.slice(result.operations.indexOf(photo) + 1).find((operation) => operation.type === "text")
+      assert.equal(nextText.lines.join(" "), people[index].name)
+      assert.equal(result.orderedCastaways[photo.index].image_url, people[index].image_url)
+    }
+    const renderedText = result.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+    assert.match(renderedText, /MY ELIMINATION PREDICTION/)
+    assert.match(renderedText, /1 = predicted winner/)
+    assert.match(renderedText, /3 = first eliminated/)
+    assert.match(renderedText, /NOT ACTUAL RESULTS/)
+    assert.doesNotMatch(renderedText, /Alphabetical by name/)
+  }
+  assert.equal(people[0].name, "Zoë Example")
+})
+
+test("prediction exports suppress real results and retrospective narratives even when spoilers are requested", () => {
+  const people = [
+    { name: "Zoë Example", age: 27, occupation: "Chef", hometown: "Austin", image_url: "/cast/zoe.webp" },
+    { name: "Ana Example", age: 32, occupation: "Teacher", hometown: "Boston", image_url: "/cast/ana.webp" },
+  ]
+  const withOutcomes = people.map((person, index) => ({
+    ...person,
+    result_order: people.length - index,
+    is_on_jury: true,
+    tribe: "Merged Tribe",
+    traits: ["Sole Survivor"],
+    summary: "Won the final vote.",
+    bio: "Reached the finale.",
+    why_applied: "An unverified retrospective answer.",
+    life_experience: "Won a previous season.",
+    unique_gameplay: "Played the decisive idol at final five.",
+    profile_spoiler_free: true,
+  }))
+  for (const layout of ["grid", "details"]) {
+    const before = measureCastawayImage({ season, castaways: people, layout, prediction: true, measure })
+    const after = measureCastawayImage({ season, castaways: withOutcomes, layout, prediction: true, showSpoilers: true, measure })
+    assert.deepEqual(after.operations, before.operations)
+    assert.deepEqual(after.cards, before.cards)
+    assert.equal(after.height, before.height)
+    const renderedText = after.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+    assert.doesNotMatch(renderedText, /Merged Tribe|Sole Survivor|Jury member|final vote|finale|unverified retrospective|previous season|decisive idol|INCLUDES SEASON RESULTS/i)
+    assert.deepEqual(after.operations.filter((operation) => operation.type === "prediction_badge").map((badge) => badge.rank), [1, 2])
   }
 })
 

@@ -26,12 +26,26 @@
     <div class="cast-heading">
       <div>
         <p class="eyebrow">{featured ? `SURVIVOR ${manager.season_prepped.season_number}` : "PUT A FACE TO THE NAME"}</p>
-        <h2 id="cast-heading">Meet the castaways<span class="count">{manager.castaways_prepped.length}</span></h2>
+        <h2 id="cast-heading">{manager.is_prediction_mode ? "My elimination prediction" : "Meet the castaways"}<span class="count">{manager.castaways_prepped.length}</span></h2>
       </div>
       <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>Show results & spoilers</label></div>
     </div>
+    <div class="cast-mode" role="group" aria-label="Cast guide mode">
+      <Button manager={manager.cast_guide_button_manager} />
+      <Button manager={manager.prediction_button_manager} />
+    </div>
+    {#if manager.is_prediction_mode}
+      <div class="prediction-guide">
+        <p><strong>#1 is your predicted winner.</strong> #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down to choose every place.</p>
+        <p>Start from alphabetical order and make it your own. Actual results stay hidden in this mode.</p>
+      </div>
+    {/if}
     <div class="cast-toolbar">
-      <div class="search"><TextInput manager={manager.search_text_input_manager} /></div>
+      {#if manager.is_prediction_mode}
+        <Button manager={manager.reset_prediction_button_manager} />
+      {:else}
+        <div class="search"><TextInput manager={manager.search_text_input_manager} /></div>
+      {/if}
       <div class="toolbar-actions">
         <div class="view-toggle" role="group" aria-label="Castaway layout">
           <Button manager={manager.grid_button_manager} />
@@ -41,13 +55,14 @@
       </div>
     </div>
     <p class="export-hint">{manager.export_hint}</p>
+    <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
     <div aria-live="polite">
       {#if manager.spoilers_loading}<p class="export-hint" role="status">Loading spoilers… You can turn the option off to keep them hidden.</p>{/if}
       {#if manager.export_error}<p class="export-error" role="alert">{manager.export_error} Try creating the preview again.</p>{/if}
       {#if manager.saved_image}
-        <section class="export-ready" aria-label="Cast sheet preview">
+        <section class="export-ready" aria-label={manager.saved_image.is_prediction ? "Prediction image preview" : "Cast sheet preview"}>
           <div class="export-header">
-            <div><h3>Cast sheet preview</h3><p class="preview-description">{manager.saved_image.description}</p></div>
+            <div><h3>{manager.saved_image.is_prediction ? "Prediction image preview" : "Cast sheet preview"}</h3><p class="preview-description">{manager.saved_image.description}</p></div>
             <Button manager={manager.close_preview_button_manager} />
           </div>
           <p class="preview-instructions">Scroll to review the image, or zoom in for a closer look.{manager.saved_image.includes_spoilers ? " This image includes spoilers." : ""}</p>
@@ -80,11 +95,15 @@
               {:else}
                 <img class="portrait" src={person.image_src} alt={person.name} loading="lazy" decoding="async" onerror={person.handle_photo_error} />
               {/if}
+              {#if manager.is_prediction_mode}
+                <span class="prediction-badge" aria-label={`Prediction number ${person.prediction_rank}`}>{person.prediction_rank}</span>
+              {/if}
               {#if manager.is_show_spoilers && person.result_label}
                 <span class="result-badge">{person.result_label}</span>
               {/if}
             </div>
             <div class="person-content">
+              {#if manager.is_prediction_mode}<p class="prediction-position">{person.prediction_label}</p>{/if}
               <div class="person-heading"><h3>{person.name}</h3>{#if person.age}<span class="age" aria-label={person.age_label}>{person.age}</span>{/if}</div>
               {#if person.occupation}<p class="occupation">{person.occupation}</p>{/if}
               {#if manager.castaway_view === "grid"}
@@ -95,6 +114,12 @@
                   {#each person.facts as fact}<div><dt>{fact.label}</dt><dd>{fact.value}</dd></div>{/each}
                 </dl>
                 {#each person.bios as bio}<div class="bio"><h4>{bio.label}</h4><p>{bio.value}</p></div>{/each}
+              {/if}
+              {#if manager.is_prediction_mode}
+                <div class="prediction-controls" role="group" aria-label={`Change ${person.name}'s prediction rank`}>
+                  <Button manager={person.move_up_button_manager} />
+                  <Button manager={person.move_down_button_manager} />
+                </div>
               {/if}
             </div>
           </article>
@@ -161,6 +186,11 @@
   .cast-toolbar { justify-content: space-between; }
   .search { max-width: 38.4rem; min-width: 0; flex: 1; }
   .view-toggle { display: flex; gap: 0.56rem; }
+  .cast-mode { display: flex; gap: 0.56rem; margin-bottom: 1.6rem; }
+  .prediction-guide { border: 1px solid var(--snuff-border); background: var(--snuff-surface); border-radius: 1.2rem; padding: 1.6rem 2rem; margin-bottom: 1.6rem; }
+  .prediction-guide p { margin: 0; font-size: 1.44rem; line-height: 1.6; }
+  .prediction-guide p + p { color: var(--snuff-muted); margin-top: 0.4rem; }
+  .prediction-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   a:focus-visible, .export-preview-scroll:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }
   .spoilers { display: flex; align-items: center; gap: 0.8rem; font-size: 1.44rem; }
   .spoilers label { cursor: pointer; }
@@ -198,6 +228,9 @@
   .bio { margin-top: 1.92rem; }
   .bio p { margin: 0; line-height: 1.6; }
   .result-badge { position: absolute; bottom: 1.04rem; left: 1.04rem; background: #173b2f; color: #fff; border-radius: 0.56rem; padding: 0.64rem 0.96rem; font-size: 1.28rem; }
+  .prediction-badge { position: absolute; top: 1.2rem; left: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #fff; color: #173e37; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .prediction-position { margin: 0 0 0.8rem; color: var(--snuff-muted); font-size: 1.28rem; font-weight: 650; }
+  .prediction-controls { display: flex; flex-wrap: wrap; gap: 0.64rem; margin-top: 1.6rem; }
   .photo-credit { margin: 2.08rem 0 0; color: var(--snuff-muted); font-size: 1.248rem; line-height: 1.5; }
   .photo-credit a { color: inherit; }
   .empty-state { padding: 4.8rem 1.6rem; text-align: center; border: 1px dashed var(--snuff-border); border-radius: 1.6rem; }
