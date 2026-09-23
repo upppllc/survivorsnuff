@@ -10,7 +10,7 @@ import { readPredictionUrl, writePredictionUrl } from "$lib/prediction-url.js"
 import { buildActualPlacements, actualPlacementFor } from "$lib/prediction-results.js"
 
 export function create_season_manager(config) {
-  let grid_columns = $state(4)
+  let grid_columns = $state(7)
   let is_prediction_mode = $state(false)
   let prediction_order = $state([])
   let prediction_announcement = $state("")
@@ -183,7 +183,7 @@ export function create_season_manager(config) {
   })
   const grid_width_dropdown_manager = create_dropdown_manager({
     label: "Grid Width",
-    val: 4,
+    val: 7,
     options: [3, 4, 5, 6, 7, 8].map((columns) => ({ key: columns, name: `${columns} across` })),
     is_button_compressed: true,
     selected_font_size: 1.44,
@@ -397,11 +397,11 @@ export function create_season_manager(config) {
   }
 
   function column_name(value) {
-    return ({ 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight" })[value] ?? "four"
+    return ({ 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight" })[value] ?? "seven"
   }
 
   function set_grid_columns(value) {
-    const next_columns = Number.isInteger(value) && value >= 3 && value <= 8 ? value : 4
+    const next_columns = Number.isInteger(value) && value >= 3 && value <= 8 ? value : 7
     if (disposed || grid_columns === next_columns) return
     grid_columns = next_columns
     invalidate_saved_image()

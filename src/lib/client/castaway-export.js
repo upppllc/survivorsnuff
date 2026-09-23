@@ -22,7 +22,7 @@ function valueText(value) {
 }
 
 function gridColumnCount(value) {
-  return Number.isInteger(value) && value >= 3 && value <= 8 ? value : 4
+  return Number.isInteger(value) && value >= 3 && value <= 8 ? value : 7
 }
 
 /** Wrap every character, including long words and explicit paragraph breaks. */
@@ -80,7 +80,7 @@ function fieldsFor(castaway, showSpoilers) {
 }
 
 /** Pure layout pass shared by rendering and geometry tests. */
-export function measureCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {}, measure }) {
+export function measureCastawayImage({ season, castaways, gridColumns = 7, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {}, measure }) {
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
   castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
@@ -260,7 +260,7 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 /** Render a full cast guide independently of the page size or scroll position. */
-export async function createCastawayImage({ season, castaways, gridColumns = 4, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {} }) {
+export async function createCastawayImage({ season, castaways, gridColumns = 7, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {} }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true

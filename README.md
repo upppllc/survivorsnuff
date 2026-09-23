@@ -108,9 +108,10 @@ sharing is unavailable, touch and hold the preview image for photo options.
 
 Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
 or **Close preview**. Generating a preview does not download anything. You can
-choose **3 through 8 across** in **Grid Width** (**4 across** is the default) for the page and saved image,
-in either Cast guide or My prediction. Phones keep two readable page columns;
-the PNG always uses the selected count. Images with 6–8 columns become wider to
+choose **3 through 8 across** in **Grid Width** (**7 across** is the default) for the saved image,
+in either Cast guide or My prediction. The page grid responds to available screen
+width independently of this setting; the PNG uses the selected count.
+Images with 6–8 columns become wider to
 preserve the profile text width. Changing the count clears the old
 preview and preserves prediction ranks. The grid and PNGs include all available
 profile details and expand to fit them. Profiles use the full photo width over the

@@ -12,7 +12,7 @@
   })
 </script>
 
-<section class="season-page" style:--portrait-position={manager.season_prepped.portrait_position} style:--portrait-aspect-ratio={manager.season_prepped.portrait_aspect_ratio} style:--cast-grid-columns={manager.grid_columns}>
+<section class="season-page" style:--portrait-position={manager.season_prepped.portrait_position} style:--portrait-aspect-ratio={manager.season_prepped.portrait_aspect_ratio}>
   {#if !featured}
     <div class="back-link"><Button manager={manager.view_seasons_button_manager} /></div>
     <header class="season-intro">
@@ -32,7 +32,6 @@
         <p class="eyebrow">{featured ? `SURVIVOR ${manager.season_prepped.season_number}` : "PUT A FACE TO THE NAME"}</p>
         <h2 id="cast-heading">{manager.is_prediction_mode ? "My elimination prediction" : "Meet the castaways"}<span class="count">{manager.castaways_prepped.length}</span></h2>
       </div>
-      <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>{manager.is_prediction_mode ? "Show actual placements (spoilers)" : "Show results & spoilers"}</label></div>
     </div>
     <div class="cast-toolbar">
       <div class="cast-mode" role="group" aria-label="Cast guide mode">
@@ -45,10 +44,10 @@
       {#if manager.is_prediction_mode}
         <div class="author-input"><TextInput manager={manager.author_name_text_input_manager} /></div>
       {/if}
+      <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>{manager.is_prediction_mode ? "Show actual placements (spoilers)" : "Show results & spoilers"}</label></div>
       <div class="toolbar-preview"><Button manager={manager.preview_image_button_manager} /></div>
     </div>
-    <p class="mobile-grid-note">On phones, profiles fit two across; saved images use your choice.</p>
-    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}<strong>#1 is your predicted winner.</strong> #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down to choose every place.{/if}</p>
+    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}#1 is your predicted winner. #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down to choose every place.{/if}</p>
     {#if manager.is_show_actual_placements}<p class="placements-hint">Red numbers show actual finishing places recorded so far. Unrecorded places stay blank.</p>{/if}
     <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
     <div aria-live="polite">
@@ -189,16 +188,14 @@
   .count { display: inline-block; vertical-align: middle; font-size: 1.44rem; margin-left: 1.28rem; padding: 0.4rem 0.96rem; border-radius: 999px; background: var(--snuff-surface); color: var(--snuff-muted); letter-spacing: 0; }
   .cast-toolbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 1.6rem 2.4rem; }
   .toolbar-preview { display: flex; justify-content: flex-end; margin-left: auto; }
-  .author-input { width: min(100%, 26rem); }
-  .grid-options { width: 14rem; flex-shrink: 0; }
-  .mobile-grid-note { display: none; }
+  .author-input { width: min(100%, 24rem); }
+  .grid-options { width: 12rem; flex-shrink: 0; }
   .cast-mode { display: flex; gap: 0.56rem; }
   .prediction-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   a:focus-visible, .export-preview-scroll:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }
-  .spoilers { display: flex; align-items: center; gap: 0.8rem; font-size: 1.44rem; }
+  .spoilers { display: flex; align-items: center; gap: 0.8rem; min-height: 3.4rem; font-size: 1.44rem; }
   .spoilers label { cursor: pointer; font-size: inherit; color: var(--snuff-text); }
   .export-hint { color: var(--snuff-muted); font-size: 1.36rem; margin: 1.44rem 0 2.88rem; line-height: 1.5; }
-  .export-hint strong { color: var(--snuff-text); font-size: inherit; line-height: inherit; }
   .placements-hint { color: var(--snuff-muted); font-size: 1.36rem; line-height: 1.5; margin: -1.6rem 0 2.88rem; }
   .export-ready { padding: 1.6rem 2rem; background: var(--snuff-surface); border: 1px solid var(--snuff-border); border-radius: 1.2rem; margin: 0 0 2.4rem; font-size: 1.52rem; }
   .export-header { display: flex; align-items: start; justify-content: space-between; gap: 1.6rem; flex-wrap: wrap; }
@@ -209,7 +206,7 @@
   .export-preview { display: block; width: 100%; height: auto; -webkit-touch-callout: default; user-select: auto; }
   .export-preview.preview-zoomed { width: 160%; min-width: 112rem; max-width: none; }
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
-  .cast-grid { display: grid; grid-template-columns: repeat(var(--cast-grid-columns, 4), minmax(0, 1fr)); gap: 2.4rem; }
+  .cast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 23rem), 1fr)); gap: 2.4rem; }
   .cast-card { border-bottom: 1px solid var(--snuff-border); padding-bottom: 2rem; min-width: 0; }
   .prediction-card { cursor: grab; }
   .prediction-card:active { cursor: grabbing; }
@@ -251,7 +248,6 @@
     .cast-toolbar { gap: 1.2rem 1.6rem; }
     .cast-mode, .toolbar-preview { flex-basis: 100%; }
     .cast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.28rem; }
-    .mobile-grid-note { display: block; color: var(--snuff-muted); font-size: 1.2rem; line-height: 1.5; margin: 1.2rem 0 0; }
     .author-input { flex: 1; min-width: 16rem; }
     .person-content { padding-top: 1.28rem; }
     .person-heading { gap: 0.48rem; }

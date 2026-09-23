@@ -37,13 +37,13 @@ test("long words, Unicode names, and paragraph breaks are wrapped without droppi
   assert.deepEqual(wrapImageText("One\n\nTwo", 10, (text) => text.length), ["One", "", "Two"])
 })
 
-test("the compact image defaults to four columns and includes every castaway", () => {
+test("the compact image defaults to seven columns and includes every castaway", () => {
   const result = measureCastawayImage({ season, castaways, measure })
   assert.equal(result.cards.length, 18)
   assert.equal(result.operations.filter((operation) => operation.type === "photo").length, 18)
-  assert.equal(new Set(result.cards.map((card) => card.x)).size, 4)
-  assert.equal(new Set(result.cards.map((card) => card.y)).size, 5)
-  assert.ok(result.cards[4].y >= result.cards[0].y + result.cards[0].height)
+  assert.equal(new Set(result.cards.map((card) => card.x)).size, 7)
+  assert.equal(new Set(result.cards.map((card) => card.y)).size, 3)
+  assert.ok(result.cards[7].y >= result.cards[0].y + result.cards[0].height)
   assert.ok(result.operations.filter((operation) => operation.type === "text").every((operation) => {
     return operation.lines.every((line) => measure(line, operation.size) <= operation.width)
   }))
@@ -99,10 +99,10 @@ test("three- through eight-column images retain all 21 castaways, legible card w
   }
 })
 
-test("grid columns default to four", () => {
+test("grid columns default to seven", () => {
   for (const prediction of [false, true]) {
     const original = measureCastawayImage({ season, castaways, prediction, measure })
-    for (const gridColumns of [4, 0, 2, 9, 5.5, "5", null]) {
+    for (const gridColumns of [7, 0, 2, 9, 5.5, "5", null]) {
       assert.deepEqual(measureCastawayImage({ season, castaways, gridColumns, prediction, measure }), original)
     }
   }
