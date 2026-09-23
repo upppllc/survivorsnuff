@@ -67,8 +67,8 @@ castaway's versioned record contains an `image_storage_id`, the original
 Deadline JPEG `photo_source_url` for provenance, and Robert Voets / CBS credit.
 The stored bytes were verified against the converted WebP files before the
 superseded JPEGs were removed from local files and `s51` storage. Season 51
-portraits use a taller 4:5 frame aligned to the top in the cast cards and both
-PNG export layouts. Ages are those published at the cast announcement.
+portraits use a taller 4:5 frame aligned to the top in the cast cards and PNG
+exports. Ages are those published at the cast announcement.
 See [the source notes](docs/season-51-sources.md).
 
 To add the checked-in season 51 facts to a configured backend:
@@ -87,7 +87,7 @@ columns, so storage references and photo credits remain in the versioned data
 module. The importer does not upload photos or change the database schema.
 
 Reviewed preseason profile summaries live in `src/lib/data/season-51-profiles.js`.
-They appear in both cast views and image exports without enabling spoilers.
+They appear in the cast grid and image exports without enabling spoilers.
 Only this versioned source can supply spoiler-free narratives; backend bios
 and arbitrary trust flags cannot bypass the spoiler gate. The current backend
 has no summary column, so these profiles remain in the repository.
@@ -99,7 +99,7 @@ running its preview. Keep unannounced facts and results unset.
 
 ## Cast sheet exports
 
-On a season page, choose **Grid** or **Details**, then **Preview image**. On
+On a season page, choose **Preview image** to preview the cast grid. On
 supported phones, choose **Save or share photo** to open the native share sheet;
 on iPhone, choose **Save Image** there to add the PNG to Photos. Cancelling the
 share sheet keeps the preview open and does not start a download. If file
@@ -107,21 +107,24 @@ sharing is unavailable, touch and hold the preview image for photo options.
 **Download PNG** remains available to save a file in any browser.
 
 Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
-or **Close preview**. Generating a preview does not download anything. Grid PNGs
-always use three columns; detailed PNGs use one castaway per row and expand to
-fit available information. Search filters the people included in the export.
+or **Close preview**. Generating a preview does not download anything. You can
+choose **3 across** (the default) or **4 across** for the page and saved image,
+in either Cast guide or My prediction. Phones keep two readable page columns;
+the PNG always uses the selected count. Changing the count clears the old
+preview and preserves prediction ranks. Grid cards and PNGs include all available
+profile details and expand to fit them. Search filters the people included in the export.
 Results follow the spoiler toggle and are hidden by default.
 
 Choose **My prediction** to arrange the entire cast with each person's **Up**
 and **Down** buttons. Number 1 is the predicted winner; the last number is the
-predicted first elimination. **Preview prediction** uses that order in either
-layout, adds white rounded number badges to the photos, and labels the image as
+predicted first elimination. **Preview prediction** uses that order in the grid,
+adds white rounded number badges to the photos, and labels the image as
 a personal prediction. It always excludes actual results. Reordering clears the
 old preview so the next saved image reflects the current picks.
 
 Switching back to **Cast guide** restores its alphabetical order and existing
 export behavior. Prediction picks remain available while switching modes and
-layouts on the current page; download or share the image before navigating away.
+grid widths on the current page; download or share the image before navigating away.
 **Reset to alphabetical** starts the prediction over.
 
 Spoiler-free pages show the whole cast with equal visual treatment in
@@ -132,7 +135,7 @@ settings clears its preview. See [the project conventions](AGENTS.md).
 
 Images are rendered locally in the browser, independently of the page's scroll
 position or screen size. Current and archive photos use the same-origin
-Contibase storage proxy for the page and both PNG layouts. A failed photo
+Contibase storage proxy for the page and PNG exports. A failed photo
 produces an error so the downloaded guide does not silently omit a castaway's
 picture. The generated PNG remains available until the preview is closed or
 its settings change.

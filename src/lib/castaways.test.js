@@ -5,7 +5,7 @@ import { season51Profiles } from "./data/season-51-profiles.js"
 import { castawayProfileDetails } from "./castaways.js"
 import { measureCastawayImage } from "./client/castaway-export.js"
 
-test("every season 51 castaway has a reviewed preseason profile in both image layouts", () => {
+test("every season 51 castaway has a reviewed preseason profile in three- and four-column grid images", () => {
   assert.equal(castaways.length, 21)
   assert.deepEqual(Object.keys(season51Profiles).sort(), castaways.map((person) => person.name).sort())
   for (const person of castaways) {
@@ -14,9 +14,9 @@ test("every season 51 castaway has a reviewed preseason profile in both image la
     assert.equal(profile.source_url, "https://www.paramountplus.com/sneak-peak/survivor-season-51-cast/")
     assert.deepEqual(castawayProfileDetails(person).bios, [{ key: "preseason", label: "Before the island", value: profile.summary }])
   }
-  for (const layout of ["grid", "details"]) {
+  for (const gridColumns of [3, 4]) {
     const rendered = measureCastawayImage({
-      season: { season_number: 51 }, castaways, layout,
+      season: { season_number: 51 }, castaways, gridColumns,
       measure: (text, size) => text.length * size * .52,
     }).operations.flatMap((operation) => operation.lines ?? []).join(" ")
     for (const profile of Object.values(season51Profiles)) assert.ok(rendered.includes(profile.summary))

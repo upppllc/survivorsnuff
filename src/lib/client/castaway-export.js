@@ -53,7 +53,7 @@ export function wrapImageText(text, maxWidth, measure) {
   return lines
 }
 
-function fieldsFor(castaway, layout, showSpoilers) {
+function fieldsFor(castaway, showSpoilers) {
   const fields = []
   const profile = castawayProfileDetails(castaway, showSpoilers)
   function add(label, value) {
@@ -63,14 +63,10 @@ function fieldsFor(castaway, layout, showSpoilers) {
   add("Age", castaway.age)
   add("Occupation", castaway.occupation)
   add("Hometown", castaway.hometown)
-  if (layout === "details") {
-    add("Current residence", castaway.current_residence)
-    add("Traits", profile.traits)
-    const labels = { preseason: "Before the island", summary: "About", why_applied: "Why they applied", life_experience: "Life experience", unique_gameplay: "Their game" }
-    for (const bio of profile.bios) add(labels[bio.key], bio.value)
-  } else {
-    add("Before the island", profile.bios.find((bio) => bio.key === "preseason")?.value)
-  }
+  add("Current residence", castaway.current_residence)
+  add("Traits", profile.traits)
+  const labels = { preseason: "Before the island", summary: "About", why_applied: "Why they applied", life_experience: "Life experience", unique_gameplay: "Their game" }
+  for (const bio of profile.bios) add(labels[bio.key], bio.value)
   add("Tribe", profile.tribe)
   if (showSpoilers && Number.isInteger(castaway.result_order)) {
     add("Finish", `${castaway.result_order}${castaway.is_on_jury ? " · Jury member" : ""}`)
@@ -79,8 +75,7 @@ function fieldsFor(castaway, layout, showSpoilers) {
 }
 
 /** Pure layout pass shared by rendering and geometry tests. */
-export function measureCastawayImage({ season, castaways, layout = "grid", showSpoilers = false, prediction = false, measure }) {
-  if (!["grid", "details"].includes(layout)) throw new Error("Choose a grid or detailed cast image.")
+export function measureCastawayImage({ season, castaways, gridColumns = 3, showSpoilers = false, prediction = false, measure }) {
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
   castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
@@ -105,7 +100,7 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
   if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, WIDTH - MARGIN * 2, 18, 700, COLORS.accent)
   y += 34
 
-  const columns = layout === "grid" ? 3 : 1
+  const columns = gridColumns === 4 ? 4 : 3
   const cardWidth = (WIDTH - 2 * MARGIN - GAP * (columns - 1)) / columns
   const cards = []
   for (let index = 0; index < castaways.length; index += columns) {
@@ -115,43 +110,26 @@ export function measureCastawayImage({ season, castaways, layout = "grid", showS
       const x = MARGIN + column * (cardWidth + GAP)
       const card = { type: "card", x, y, width: cardWidth, height: 0 }
       operations.push(card)
-      const padding = layout === "grid" ? 24 : 30
-      const imageWidth = layout === "grid" ? cardWidth : 240
-      const imageHeight = Number(season?.season_number) === 51
-        ? imageWidth * 1.25
-        : layout === "grid" ? cardWidth * 1.05 : 288
-      const imageX = layout === "grid" ? x : x + padding
-      const imageY = layout === "grid" ? y : y + padding
-      operations.push({ type: "photo", index: index + column, x: imageX, y: imageY, width: imageWidth, height: imageHeight })
+      const padding = 24
+      const imageHeight = cardWidth * (Number(season?.season_number) === 51 ? 1.25 : 1.05)
+      operations.push({ type: "photo", index: index + column, x, y, width: cardWidth, height: imageHeight })
       if (prediction) {
-        const size = layout === "grid" ? 64 : 56
-        operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: imageX + 16, y: imageY + 16, width: size, height: size })
+        operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: x + 16, y: y + 16, width: 64, height: 64 })
       }
-      const textX = layout === "grid" ? x + padding : imageX + imageWidth + 30
-      const textWidth = layout === "grid" ? cardWidth - 2 * padding : cardWidth - imageWidth - 3 * padding
-      let bottom = layout === "grid" ? y + imageHeight + padding : y + padding
-      bottom = text(valueText(castaway.name) || "Castaway", textX, bottom, textWidth, layout === "grid" ? 32 : 36, 700, COLORS.ink, true)
+      const textX = x + padding
+      const textWidth = cardWidth - 2 * padding
+      let bottom = y + imageHeight + padding
+      bottom = text(valueText(castaway.name) || "Castaway", textX, bottom, textWidth, 32, 700, COLORS.ink, true)
       bottom += 14
-      for (const field of fieldsFor(castaway, layout, showSpoilers)) {
-        if (layout === "grid") {
-          bottom = text(`${field.label}: ${field.text}`, textX, bottom, textWidth, 22)
-          bottom += 7
-        } else {
-          bottom = text(field.label.toUpperCase(), textX, bottom, textWidth, 17, 700, COLORS.accent)
-          bottom = text(field.text, textX, bottom + 3, textWidth, 23)
-          bottom += 16
-        }
+      for (const field of fieldsFor(castaway, showSpoilers)) {
+        bottom = text(`${field.label}: ${field.text}`, textX, bottom, textWidth, 22)
+        bottom += 7
       }
       const credit = valueText(castaway.photo_credit ?? castaway.image_credit)
       if (credit) {
-        if (layout === "grid") {
-          bottom = text(credit, textX, bottom + 8, textWidth, 15, 400, COLORS.muted)
-        } else {
-          const creditBottom = text(credit, imageX, imageY + imageHeight + 12, imageWidth, 15, 400, COLORS.muted)
-          bottom = Math.max(bottom, creditBottom)
-        }
+        bottom = text(credit, textX, bottom + 8, textWidth, 15, 400, COLORS.muted)
       }
-      card.height = Math.ceil(Math.max(bottom - y, imageY + imageHeight - y) + padding)
+      card.height = Math.ceil(bottom - y + padding)
       row.push(card)
       cards.push(card)
     }
@@ -251,7 +229,7 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 /** Render a full cast guide independently of the page size or scroll position. */
-export async function createCastawayImage({ season, castaways, layout = "grid", showSpoilers = false, prediction = false }) {
+export async function createCastawayImage({ season, castaways, gridColumns = 3, showSpoilers = false, prediction = false }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
@@ -264,7 +242,7 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
     ctx.font = `${weight} ${size}px ${heading ? font : "Arial, sans-serif"}`
   }
   const measured = measureCastawayImage({
-    season, castaways, layout, showSpoilers, prediction,
+    season, castaways, gridColumns, showSpoilers, prediction,
     measure: (text, size, weight, heading) => {
       setFont(size, weight, heading)
       return ctx.measureText(text).width
@@ -342,13 +320,14 @@ export async function createCastawayImage({ season, castaways, layout = "grid", 
     canvas.width = 1
     canvas.height = 1
   }
-  if (!blob) throw new Error("The cast image was too large for this browser. Try the compact grid or a desktop browser.")
+  if (!blob) throw new Error("The cast image was too large for this browser. Try a desktop browser.")
   const seasonNumber = String(season?.season_number ?? "cast").replace(/[^a-z\d-]/gi, "")
+  const columnsSuffix = gridColumns === 4 ? "-4-columns" : ""
   return {
     blob,
     filename: prediction
-      ? `survivor-${seasonNumber}-prediction-${layout}.png`
-      : `survivor-${seasonNumber}-cast-${layout}${showSpoilers ? "-with-results" : ""}.png`,
+      ? `survivor-${seasonNumber}-prediction-grid${columnsSuffix}.png`
+      : `survivor-${seasonNumber}-cast-grid${showSpoilers ? "-with-results" : ""}${columnsSuffix}.png`,
     width: dimensions.width,
     height: dimensions.height,
   }

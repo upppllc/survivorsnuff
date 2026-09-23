@@ -51,10 +51,10 @@ copies remain in the repository.
 
 Each record in `src/lib/data/season-51.js` retains the new WebP
 `image_storage_id`, the exact resized Deadline JPEG URL in `photo_source_url`
-for provenance, and the Robert Voets / CBS credit. The page and both PNG export
-layouts load the WebP objects through the same-origin `/api/storage/:storage_id`
+for provenance, and the Robert Voets / CBS credit. The page and PNG exports
+load the WebP objects through the same-origin `/api/storage/:storage_id`
 proxy. Season 51 photos use taller 4:5 frames aligned to the top in cast cards
-and both export layouts to keep faces visible; archive crops are unchanged.
+and exports to keep faces visible; archive crops are unchanged.
 Copyright remains with the original rights holder.
 
 ## Contibase import

@@ -8,7 +8,7 @@
   })
 </script>
 
-<section class="season-page" style:--portrait-position={manager.season_prepped.portrait_position} style:--portrait-aspect-ratio={manager.season_prepped.portrait_aspect_ratio}>
+<section class="season-page" style:--portrait-position={manager.season_prepped.portrait_position} style:--portrait-aspect-ratio={manager.season_prepped.portrait_aspect_ratio} style:--cast-grid-columns={manager.grid_columns}>
   {#if !featured}
     <div class="back-link"><Button manager={manager.view_seasons_button_manager} /></div>
     <header class="season-intro">
@@ -47,12 +47,14 @@
         <div class="search"><TextInput manager={manager.search_text_input_manager} /></div>
       {/if}
       <div class="toolbar-actions">
-        <div class="view-toggle" role="group" aria-label="Castaway layout">
-          <Button manager={manager.grid_button_manager} />
-          <Button manager={manager.details_button_manager} />
-        </div>
         <Button manager={manager.preview_image_button_manager} />
       </div>
+    </div>
+    <div class="grid-options" role="group" aria-label="Grid columns">
+      <span>Grid width</span>
+      <Button manager={manager.three_columns_button_manager} />
+      <Button manager={manager.four_columns_button_manager} />
+      <span class="mobile-grid-note">On phones, cards fit two across; saved images use your choice.</span>
     </div>
     <p class="export-hint">{manager.export_hint}</p>
     <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
@@ -86,7 +88,7 @@
     </div>
 
     {#if manager.filtered_castaways.length}
-      <div class:cast-grid={manager.castaway_view === "grid"} class:cast-details={manager.castaway_view === "details"}>
+      <div class="cast-grid">
         {#each manager.filtered_castaways as person (person.id ?? person.name)}
           <article class="cast-card">
             <div class="portrait-wrap">
@@ -106,15 +108,12 @@
               {#if manager.is_prediction_mode}<p class="prediction-position">{person.prediction_label}</p>{/if}
               <div class="person-heading"><h3>{person.name}</h3>{#if person.age}<span class="age" aria-label={person.age_label}>{person.age}</span>{/if}</div>
               {#if person.occupation}<p class="occupation">{person.occupation}</p>{/if}
-              {#if manager.castaway_view === "grid"}
-                {#if person.hometown}<p class="hometown">{person.hometown}</p>{/if}
-                {#if person.preseason_summary}<p class="preseason-summary">{person.preseason_summary}</p>{/if}
-              {:else}
+              {#if person.facts.length}
                 <dl class="person-facts">
                   {#each person.facts as fact}<div><dt>{fact.label}</dt><dd>{fact.value}</dd></div>{/each}
                 </dl>
-                {#each person.bios as bio}<div class="bio"><h4>{bio.label}</h4><p>{bio.value}</p></div>{/each}
               {/if}
+              {#each person.bios as bio}<div class="bio"><h4>{bio.label}</h4><p>{bio.value}</p></div>{/each}
               {#if manager.is_prediction_mode}
                 <div class="prediction-controls" role="group" aria-label={`Change ${person.name}'s prediction rank`}>
                   <Button manager={person.move_up_button_manager} />
@@ -185,7 +184,9 @@
   .cast-toolbar, .toolbar-actions { display: flex; align-items: center; gap: 1.2rem; }
   .cast-toolbar { justify-content: space-between; }
   .search { max-width: 38.4rem; min-width: 0; flex: 1; }
-  .view-toggle { display: flex; gap: 0.56rem; }
+  .grid-options { display: flex; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.6rem; font-size: 1.36rem; color: var(--snuff-muted); }
+  .grid-options > span:first-child { margin-right: 0.4rem; }
+  .mobile-grid-note { display: none; }
   .cast-mode { display: flex; gap: 0.56rem; margin-bottom: 1.6rem; }
   .prediction-guide { border: 1px solid var(--snuff-border); background: var(--snuff-surface); border-radius: 1.2rem; padding: 1.6rem 2rem; margin-bottom: 1.6rem; }
   .prediction-guide p { margin: 0; font-size: 1.44rem; line-height: 1.6; }
@@ -204,7 +205,7 @@
   .export-preview { display: block; width: 100%; height: auto; -webkit-touch-callout: default; user-select: auto; }
   .export-preview.preview-zoomed { width: 160%; min-width: 112rem; max-width: none; }
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
-  .cast-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4rem; }
+  .cast-grid { display: grid; grid-template-columns: repeat(var(--cast-grid-columns, 3), minmax(0, 1fr)); gap: 2.4rem; }
   .cast-card { background: var(--snuff-card); border: 1px solid var(--snuff-border); border-radius: 1.6rem; overflow: hidden; min-width: 0; }
   .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: var(--portrait-aspect-ratio, 1.2); overflow: hidden; }
   .portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: var(--portrait-position, center 25%); }
@@ -215,18 +216,11 @@
   h3 { font-size: 2.08rem; line-height: 1.2; letter-spacing: -.02em; margin: 0; overflow-wrap: anywhere; }
   .age { color: var(--snuff-muted); font-size: 1.44rem; border: 1px solid var(--snuff-border); border-radius: 50%; min-width: 3.2rem; height: 3.2rem; display: grid; place-content: center; flex-shrink: 0; }
   .occupation { margin: 0.8rem 0 0; font-size: 1.568rem; font-weight: 550; line-height: 1.4; }
-  .hometown { color: var(--snuff-muted); font-size: 1.408rem; margin: 0.56rem 0 0; line-height: 1.45; }
-  .preseason-summary { color: var(--snuff-muted); font-size: 1.36rem; margin: 0.96rem 0 0; line-height: 1.5; }
-  .cast-details { display: grid; gap: 2rem; }
-  .cast-details .cast-card { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
-  .cast-details .portrait-wrap { aspect-ratio: auto; min-height: 250px; height: 100%; }
-  .cast-details .person-content { padding: 2.56rem; }
-  .cast-details h3 { font-size: 2.56rem; }
-  .person-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem; margin: 2rem 0 0; }
+  .person-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2rem; margin: 1.6rem 0 0; }
   dt, .bio h4 { color: var(--snuff-muted); font-size: 1.2rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 0.48rem; }
-  dd { margin: 0; line-height: 1.4; }
-  .bio { margin-top: 1.92rem; }
-  .bio p { margin: 0; line-height: 1.6; }
+  dd { margin: 0; font-size: 1.408rem; line-height: 1.45; overflow-wrap: anywhere; }
+  .bio { margin-top: 1.6rem; }
+  .bio p { margin: 0; font-size: 1.36rem; line-height: 1.6; overflow-wrap: anywhere; }
   .result-badge { position: absolute; bottom: 1.04rem; left: 1.04rem; background: #173b2f; color: #fff; border-radius: 0.56rem; padding: 0.64rem 0.96rem; font-size: 1.28rem; }
   .prediction-badge { position: absolute; top: 1.2rem; left: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #fff; color: #173e37; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
   .prediction-position { margin: 0 0 0.8rem; color: var(--snuff-muted); font-size: 1.28rem; font-weight: 650; }
@@ -248,15 +242,13 @@
     .search { max-width: none; }
     .toolbar-actions { justify-content: space-between; }
     .cast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.28rem; }
+    .mobile-grid-note { display: block; flex-basis: 100%; font-size: 1.2rem; line-height: 1.5; }
     .person-content { padding: 1.28rem; }
     .person-heading { gap: 0.48rem; }
     h3 { font-size: 1.68rem; }
     .age { font-size: 1.2rem; min-width: 2.56rem; height: 2.56rem; }
     .occupation { font-size: 1.36rem; }
-    .hometown { font-size: 1.248rem; }
-    .cast-details .cast-card { grid-template-columns: 1fr; }
-    .cast-details .portrait-wrap { aspect-ratio: var(--portrait-aspect-ratio, 1.5); min-height: 0; }
-    .cast-details .person-content { padding: 2rem; }
+    dd { font-size: 1.248rem; }
     .episode-card { flex-wrap: wrap; }
   }
 </style>

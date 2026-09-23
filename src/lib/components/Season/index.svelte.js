@@ -6,7 +6,7 @@ import { prepareCastawayShareFile, shareCastawayFile } from "$lib/client/castawa
 import { predictionCastawayKey, orderPredictionCastaways, movePredictionCastaway } from "$lib/predictions.js"
 
 export function create_season_manager(config) {
-  let castaway_view = $state("grid")
+  let grid_columns = $state(3)
   let is_prediction_mode = $state(false)
   let prediction_order = $state([])
   let prediction_announcement = $state("")
@@ -76,7 +76,6 @@ export function create_season_manager(config) {
         { label: "Three words", value: Array.isArray(profile.traits) ? profile.traits.join(", ") : profile.traits },
       ].filter((fact) => fact.value),
       bios: profile.bios,
-      preseason_summary: profile.bios.find((bio) => bio.key === "preseason")?.value,
       get photo_failed() { return Boolean(failed_photos[photo_key]) },
       handle_photo_error: () => { failed_photos[photo_key] = true },
     }
@@ -166,21 +165,21 @@ export function create_season_manager(config) {
       invalidate_saved_image()
     },
   })
-  const grid_button_manager = create_button_manager({
+  const three_columns_button_manager = create_button_manager({
     type: "outlined",
-    text: "Grid",
-    aria_label: () => castaway_view === "grid" ? "Grid view, selected" : "Grid view",
-    selected_type: () => castaway_view === "grid" ? "selected" : null,
+    text: "3 across",
+    aria_label: () => grid_columns === 3 ? "3 across, selected" : "3 across",
+    selected_type: () => grid_columns === 3 ? "selected" : null,
     is_compressed: true,
-    on_click: () => set_castaway_view("grid"),
+    on_click: () => set_grid_columns(3),
   })
-  const details_button_manager = create_button_manager({
+  const four_columns_button_manager = create_button_manager({
     type: "outlined",
-    text: "Details",
-    aria_label: () => castaway_view === "details" ? "Details view, selected" : "Details view",
-    selected_type: () => castaway_view === "details" ? "selected" : null,
+    text: "4 across",
+    aria_label: () => grid_columns === 4 ? "4 across, selected" : "4 across",
+    selected_type: () => grid_columns === 4 ? "selected" : null,
     is_compressed: true,
-    on_click: () => set_castaway_view("details"),
+    on_click: () => set_grid_columns(4),
   })
   const preview_image_button_manager = create_button_manager({
     text: () => is_generating ? "Creating preview…" : is_prediction_mode ? "Preview prediction" : "Preview image",
@@ -238,9 +237,10 @@ export function create_season_manager(config) {
     is_compressed: true,
     on_click: () => search_text_input_manager.set_val(""),
   })
+  const grid_description = $derived(grid_columns === 4 ? "four-column grid" : "three-column grid")
   const export_hint = $derived(is_prediction_mode
-    ? `Your image includes all ${prediction_castaways.length} castaways in your chosen order, with numbered photo badges. Your picks stay while you switch modes; save an image before leaving this page.`
-    : `Castaways are listed alphabetically by name. Preview the ${castaway_view === "grid" ? "three-column grid" : "full details, one person per row"}, then save it as a PNG.${search_query ? ` Includes the ${filtered_castaways.length} matching castaways.` : ""}`)
+    ? `Your ${grid_description} image includes all ${prediction_castaways.length} castaways and their profiles in your chosen order, with numbered photo badges. Your picks stay while you switch modes; save an image before leaving this page.`
+    : `Castaways are listed alphabetically by name. Preview the ${grid_description} with full profiles, then save it as a PNG.${search_query ? ` Includes the ${filtered_castaways.length} matching castaways.` : ""}`)
 
   function get_prediction_controls(person) {
     const key = predictionCastawayKey(person)
@@ -307,12 +307,11 @@ export function create_season_manager(config) {
     }
   }
 
-  function set_castaway_view(value) {
-    const next_view = value === "details" ? "details" : "grid"
-    if (next_view !== castaway_view) {
-      castaway_view = next_view
-      invalidate_saved_image()
-    }
+  function set_grid_columns(value) {
+    const next_columns = value === 4 ? 4 : 3
+    if (disposed || grid_columns === next_columns) return
+    grid_columns = next_columns
+    invalidate_saved_image()
   }
 
   async function load_spoilers(value) {
@@ -366,7 +365,7 @@ export function create_season_manager(config) {
     const selection = {
       season,
       castaways: [...filtered_castaways],
-      layout: castaway_view,
+      gridColumns: grid_columns,
       showSpoilers: is_show_spoilers,
       prediction: is_prediction_mode,
     }
@@ -378,10 +377,10 @@ export function create_season_manager(config) {
         ...result,
         share_file: prepareCastawayShareFile(result),
         url: URL.createObjectURL(result.blob),
-        description: `${selection.prediction ? "My prediction · " : ""}${selection.castaways.length} castaways · ${selection.layout === "grid" ? "Three-column grid" : "One person per row"} · ${result.width} × ${result.height} px`,
+        description: `${selection.prediction ? "My prediction · " : ""}${selection.castaways.length} castaways · ${selection.gridColumns === 4 ? "Four" : "Three"}-column grid · ${result.width} × ${result.height} px`,
         alt: selection.prediction
           ? `My Survivor ${selection.season.season_number} prediction with ${selection.castaways.length} numbered picks, predicted winner first`
-          : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in ${selection.layout === "grid" ? "a three-column grid" : "detailed rows"}`,
+          : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${selection.gridColumns === 4 ? "four" : "three"}-column grid`,
         is_prediction: selection.prediction,
         includes_spoilers: selection.showSpoilers,
       }
@@ -448,8 +447,9 @@ export function create_season_manager(config) {
     search_text_input_manager,
     show_spoilers_checkbox_manager,
     view_seasons_button_manager,
-    grid_button_manager,
-    details_button_manager,
+    three_columns_button_manager,
+    four_columns_button_manager,
+    get grid_columns() { return grid_columns },
     preview_image_button_manager,
     share_photo_button_manager,
     save_png_button_manager,
@@ -467,8 +467,6 @@ export function create_season_manager(config) {
     get export_hint() { return export_hint },
     get is_show_spoilers() { return is_show_spoilers },
     set is_show_spoilers(value) { set_show_spoilers(value) },
-    get castaway_view() { return castaway_view },
-    set castaway_view(value) { set_castaway_view(value) },
     preview_image,
     dispose,
   }
