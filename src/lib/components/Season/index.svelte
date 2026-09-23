@@ -1,5 +1,5 @@
 <script>
-  import { Button, Checkbox, TextInput } from "sveltekit-ui"
+  import { Button, Checkbox, Dropdown, TextInput } from "sveltekit-ui"
   import { untrack } from "svelte"
   import { afterNavigate } from "$app/navigation"
 
@@ -32,36 +32,24 @@
         <p class="eyebrow">{featured ? `SURVIVOR ${manager.season_prepped.season_number}` : "PUT A FACE TO THE NAME"}</p>
         <h2 id="cast-heading">{manager.is_prediction_mode ? "My elimination prediction" : "Meet the castaways"}<span class="count">{manager.castaways_prepped.length}</span></h2>
       </div>
-      <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>Show results & spoilers</label></div>
+      <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>{manager.is_prediction_mode ? "Show actual placements (spoilers)" : "Show results & spoilers"}</label></div>
     </div>
-    <div class="cast-mode" role="group" aria-label="Cast guide mode">
-      <Button manager={manager.cast_guide_button_manager} />
-      <Button manager={manager.prediction_button_manager} />
-    </div>
-    {#if manager.is_prediction_mode}
-      <div class="prediction-guide">
-        <p><strong>#1 is your predicted winner.</strong> #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down to choose every place.</p>
-        <p>Start from alphabetical order and make it your own. Actual results stay hidden in this mode.</p>
-      </div>
-    {/if}
     <div class="cast-toolbar">
-      <div class="toolbar-actions">
-        <Button manager={manager.preview_image_button_manager} />
+      <div class="cast-mode" role="group" aria-label="Cast guide mode">
+        <Button manager={manager.cast_guide_button_manager} />
+        <Button manager={manager.prediction_button_manager} />
       </div>
-    </div>
-    <div class="export-options">
-      <div class="grid-options" role="group" aria-label="Grid columns">
-        <span>Grid width</span>
-        {#each manager.grid_column_options as option (option.columns)}
-          <Button manager={option.button_manager} />
-        {/each}
-        <span class="mobile-grid-note">On phones, profiles fit two across; saved images use your choice.</span>
+      <div class="grid-options" role="group" aria-label="Grid Width">
+        <Dropdown manager={manager.grid_width_dropdown_manager} />
       </div>
       {#if manager.is_prediction_mode}
         <div class="author-input"><TextInput manager={manager.author_name_text_input_manager} /></div>
       {/if}
+      <div class="toolbar-preview"><Button manager={manager.preview_image_button_manager} /></div>
     </div>
-    <p class="export-hint">{manager.export_hint}</p>
+    <p class="mobile-grid-note">On phones, profiles fit two across; saved images use your choice.</p>
+    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}<strong>#1 is your predicted winner.</strong> #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down to choose every place.{/if}</p>
+    {#if manager.is_show_actual_placements}<p class="placements-hint">Red numbers show actual finishing places recorded so far. Unrecorded places stay blank.</p>{/if}
     <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
     <div aria-live="polite">
       {#if manager.spoilers_loading}<p class="export-hint" role="status">Loading spoilers… You can turn the option off to keep them hidden.</p>{/if}
@@ -95,15 +83,25 @@
     {#if manager.display_castaways.length}
       <div class="cast-grid">
         {#each manager.display_castaways as person (person.id ?? person.name)}
-          <article class="cast-card">
+          <article class="cast-card" class:prediction-card={manager.is_prediction_mode}
+            class:is-dragging={manager.is_prediction_mode && person.prediction_key === manager.dragged_prediction_key}
+            class:is-drop-target={manager.is_prediction_mode && person.prediction_key === manager.drop_prediction_key && person.prediction_key !== manager.dragged_prediction_key}
+            draggable={manager.is_prediction_mode}
+            ondragstart={(event) => manager.start_prediction_drag(event, person)}
+            ondragover={(event) => manager.over_prediction_drag(event, person)}
+            ondrop={(event) => manager.drop_prediction(event, person)}
+            ondragend={manager.end_prediction_drag}>
             <div class="portrait-wrap">
               {#if person.photo_failed}
                 <div class="photo-fallback"><span>{person.initials}</span><small>Photo unavailable</small></div>
               {:else}
-                <img class="portrait" src={person.image_src} alt={person.name} loading="lazy" decoding="async" onerror={person.handle_photo_error} />
+                <img class="portrait" src={person.image_src} alt={person.name} draggable="false" loading="lazy" decoding="async" onerror={person.handle_photo_error} />
               {/if}
               {#if manager.is_prediction_mode}
                 <span class="prediction-badge" aria-label={`Prediction number ${person.prediction_rank}`}>{person.prediction_rank}</span>
+                {#if manager.is_show_actual_placements && person.actual_placement}
+                  <span class="actual-placement-badge" aria-label={`Actual finishing place ${person.actual_placement}`}>{person.actual_placement}</span>
+                {/if}
               {/if}
               {#if manager.is_show_spoilers && person.result_label}
                 <span class="result-badge">{person.result_label}</span>
@@ -189,22 +187,19 @@
   .cast-heading { display: flex; align-items: center; justify-content: space-between; gap: 1.6rem; flex-wrap: wrap; margin-bottom: 2.56rem; }
   h2 { margin: 0; font-size: clamp(2.64rem, 3vw, 3.68rem); letter-spacing: -.035em; }
   .count { display: inline-block; vertical-align: middle; font-size: 1.44rem; margin-left: 1.28rem; padding: 0.4rem 0.96rem; border-radius: 999px; background: var(--snuff-surface); color: var(--snuff-muted); letter-spacing: 0; }
-  .cast-toolbar, .toolbar-actions { display: flex; align-items: center; gap: 1.2rem; }
-  .cast-toolbar { justify-content: space-between; }
-  .export-options { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1.6rem 2.4rem; margin-top: 1.6rem; }
-  .author-input { width: min(100%, 32rem); }
-  .grid-options { display: flex; align-items: center; flex-wrap: wrap; gap: 0.8rem; font-size: 1.36rem; color: var(--snuff-muted); }
-  .grid-options > span:first-child { margin-right: 0.4rem; }
+  .cast-toolbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 1.6rem 2.4rem; }
+  .toolbar-preview { display: flex; justify-content: flex-end; margin-left: auto; }
+  .author-input { width: min(100%, 26rem); }
+  .grid-options { width: 14rem; flex-shrink: 0; }
   .mobile-grid-note { display: none; }
-  .cast-mode { display: flex; gap: 0.56rem; margin-bottom: 1.6rem; }
-  .prediction-guide { border: 1px solid var(--snuff-border); background: var(--snuff-surface); border-radius: 1.2rem; padding: 1.6rem 2rem; margin-bottom: 1.6rem; }
-  .prediction-guide p { margin: 0; font-size: 1.44rem; line-height: 1.6; }
-  .prediction-guide p + p { color: var(--snuff-muted); margin-top: 0.4rem; }
+  .cast-mode { display: flex; gap: 0.56rem; }
   .prediction-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   a:focus-visible, .export-preview-scroll:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }
   .spoilers { display: flex; align-items: center; gap: 0.8rem; font-size: 1.44rem; }
-  .spoilers label { cursor: pointer; }
+  .spoilers label { cursor: pointer; font-size: inherit; color: var(--snuff-text); }
   .export-hint { color: var(--snuff-muted); font-size: 1.36rem; margin: 1.44rem 0 2.88rem; line-height: 1.5; }
+  .export-hint strong { color: var(--snuff-text); font-size: inherit; line-height: inherit; }
+  .placements-hint { color: var(--snuff-muted); font-size: 1.36rem; line-height: 1.5; margin: -1.6rem 0 2.88rem; }
   .export-ready { padding: 1.6rem 2rem; background: var(--snuff-surface); border: 1px solid var(--snuff-border); border-radius: 1.2rem; margin: 0 0 2.4rem; font-size: 1.52rem; }
   .export-header { display: flex; align-items: start; justify-content: space-between; gap: 1.6rem; flex-wrap: wrap; }
   .preview-description { color: var(--snuff-muted); margin: 0.8rem 0 0; }
@@ -216,6 +211,10 @@
   .export-error { padding: 1.6rem; color: var(--snuff-accent); border: 1px solid currentColor; border-radius: 1.2rem; }
   .cast-grid { display: grid; grid-template-columns: repeat(var(--cast-grid-columns, 4), minmax(0, 1fr)); gap: 2.4rem; }
   .cast-card { border-bottom: 1px solid var(--snuff-border); padding-bottom: 2rem; min-width: 0; }
+  .prediction-card { cursor: grab; }
+  .prediction-card:active { cursor: grabbing; }
+  .is-dragging { opacity: .45; }
+  .is-drop-target { outline: 2px solid var(--snuff-accent); outline-offset: 0.6rem; border-radius: 1.2rem; }
   .portrait-wrap { position: relative; background: var(--snuff-surface); aspect-ratio: var(--portrait-aspect-ratio, 1.2); border-radius: 1.2rem; overflow: hidden; }
   .portrait { width: 100%; height: 100%; display: block; object-fit: cover; object-position: var(--portrait-position, center 25%); }
   .photo-fallback { width: 100%; height: 100%; display: grid; place-content: center; text-align: center; gap: 0.8rem; color: var(--snuff-muted); }
@@ -232,6 +231,7 @@
   .bio p { margin: 0; font-size: 1.36rem; line-height: 1.6; overflow-wrap: anywhere; }
   .result-badge { position: absolute; bottom: 1.04rem; left: 1.04rem; background: #173b2f; color: #fff; border-radius: 0.56rem; padding: 0.64rem 0.96rem; font-size: 1.28rem; }
   .prediction-badge { position: absolute; top: 1.2rem; left: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #fff; color: #173e37; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .actual-placement-badge { position: absolute; top: 1.2rem; right: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #b42318; color: #fff; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
   .prediction-position { margin: 0 0 0.8rem; color: var(--snuff-muted); font-size: 1.28rem; font-weight: 650; }
   .prediction-controls { display: flex; flex-wrap: wrap; gap: 0.64rem; margin-top: 1.6rem; }
   .prediction-reset { display: flex; justify-content: flex-end; margin-top: 3.2rem; padding: 1.6rem 0; }
@@ -248,11 +248,11 @@
   .finalist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.6rem; margin-top: 1.6rem; }
   .finalist-card { border: 1px solid var(--snuff-border); padding: 2rem; border-radius: 1.2rem; }
   @media (max-width: 700px) {
-    .cast-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-actions { justify-content: space-between; }
+    .cast-toolbar { gap: 1.2rem 1.6rem; }
+    .cast-mode, .toolbar-preview { flex-basis: 100%; }
     .cast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.28rem; }
-    .mobile-grid-note { display: block; flex-basis: 100%; font-size: 1.2rem; line-height: 1.5; }
-    .author-input { width: 100%; }
+    .mobile-grid-note { display: block; color: var(--snuff-muted); font-size: 1.2rem; line-height: 1.5; margin: 1.2rem 0 0; }
+    .author-input { flex: 1; min-width: 16rem; }
     .person-content { padding-top: 1.28rem; }
     .person-heading { gap: 0.48rem; }
     h3 { font-size: 1.68rem; }

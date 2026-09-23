@@ -34,14 +34,14 @@
   .premiere { line-height: 1.5; display: flex; align-items: center; gap: 1.36rem; font-size: 1.312rem; margin-top: 3.2rem; color: var(--snuff-muted); }
   .premiere span { font-size: inherit; line-height: inherit; color: inherit; }
   .premiere strong { line-height: inherit; color: var(--snuff-text); font-size: 1.152rem; letter-spacing: .08em; padding-right: 1.36rem; border-right: 1px solid var(--snuff-border); }
-  .season-panel { position: relative; isolation: isolate; overflow: hidden; width: 80%; max-width: 37rem; justify-self: center; padding: 2.5rem; border: 1px solid var(--snuff-border); border-radius: 1.6rem; background: var(--snuff-surface); transform: rotate(2deg); }
+  .season-panel { position: relative; isolation: isolate; overflow: hidden; width: 74%; max-width: 33rem; justify-self: center; padding: 2.2rem; border: 1px solid var(--snuff-border); border-radius: 1.6rem; background: var(--snuff-surface); transform: rotate(2deg); }
   .season-panel::before, .season-panel::after { content: ""; position: absolute; z-index: -1; width: 36rem; height: 36rem; border: 1px solid var(--snuff-border); border-radius: 50%; pointer-events: none; }
   .season-panel::before { top: -19rem; right: -15rem; box-shadow: 0 0 0 2rem var(--snuff-surface), 0 0 0 calc(2rem + 1px) var(--snuff-border); }
   .season-panel::after { bottom: -24rem; left: -10rem; box-shadow: 0 0 0 2rem var(--snuff-surface), 0 0 0 calc(2rem + 1px) var(--snuff-border); }
   .season-panel-heading, .season-panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 1.6rem; }
   .season-panel-heading span, .season-panel-footer span { color: var(--snuff-muted); font-size: 1.12rem; font-weight: 650; line-height: 1.5; letter-spacing: .12em; }
-  .season-panel-number { color: var(--snuff-text); font-size: clamp(10.3rem, 14.25vw, 16.6rem); font-weight: 780; line-height: .9; letter-spacing: -.09em; text-align: center; padding: 2.5rem 1.2rem 0 0; }
-  .season-panel-title { color: var(--snuff-text); font-size: 2.24rem; font-weight: 600; line-height: 1.2; text-align: center; margin: 1.6rem 0 3.2rem; }
+  .season-panel-number { color: var(--snuff-text); font-size: clamp(9.6rem, 13vw, 15rem); font-weight: 780; line-height: .9; letter-spacing: -.09em; text-align: center; padding: 2.2rem 1.2rem 0 0; }
+  .season-panel-title { color: var(--snuff-text); font-size: 2.08rem; font-weight: 600; line-height: 1.2; text-align: center; margin: 1.6rem 0 2.8rem; }
   .season-panel-footer { border-top: 1px solid var(--snuff-border); padding-top: 2.4rem; }
   .archive-callout { margin-top: 6.4rem; padding: 3.2rem 0; border-top: 1px solid var(--snuff-border); display: flex; align-items: center; justify-content: space-between; gap: 2.4rem; }
   .archive-callout .eyebrow { margin-bottom: 0.96rem; }
@@ -58,8 +58,8 @@
     .hero { grid-template-columns: 1fr; padding: 4rem 0 3.2rem; gap: 3.68rem; }
     h1 { font-size: clamp(4.96rem, 12vw, 7.2rem); }
     .season-panel { transform: none; padding: 1.9rem; }
-    .season-panel-number { font-size: 9.5rem; padding-top: 1.9rem; }
-    .season-panel-title { font-size: 1.92rem; margin-bottom: 2.4rem; }
+    .season-panel-number { font-size: 8.6rem; padding-top: 1.9rem; }
+    .season-panel-title { font-size: 1.8rem; margin-bottom: 2.4rem; }
     .season-panel-footer { padding-top: 1.6rem; }
     .premiere { flex-wrap: wrap; margin-top: 2.4rem; font-size: 1.2rem; gap: 0.8rem; }
     .archive-callout { flex-direction: column; align-items: start; }

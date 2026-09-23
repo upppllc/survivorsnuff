@@ -108,7 +108,7 @@ sharing is unavailable, touch and hold the preview image for photo options.
 
 Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
 or **Close preview**. Generating a preview does not download anything. You can
-choose **3 through 8 across** (**4 across** is the default) for the page and saved image,
+choose **3 through 8 across** in **Grid Width** (**4 across** is the default) for the page and saved image,
 in either Cast guide or My prediction. Phones keep two readable page columns;
 the PNG always uses the selected count. Images with 6–8 columns become wider to
 preserve the profile text width. Changing the count clears the old
@@ -122,22 +122,28 @@ In **My prediction**, enter **Your name (optional)** to put your name in bold
 orange at the top right of the image. The name stays on one line, fitting its
 font size to the available header space when needed.
 Leave it blank for an unnamed prediction. The regular cast guide has no name
-input or author name. Changing the name clears the old preview; the name stays while
-switching modes and grid widths on the current page.
+input or author name. Changing the name clears the old preview and saves the name
+alongside your order in the URL. Names stay while switching modes and grid widths.
 
-Choose **My prediction** to arrange the entire cast with each person's **Up**
-and **Down** buttons. Number 1 is the predicted winner; the last number is the
+Choose **My prediction** to arrange the entire cast by dragging cards or with each
+person's **Up** and **Down** buttons. Photos no longer drag independently.
+Number 1 is the predicted winner; the last number is the
 predicted first elimination. **Preview prediction** uses that order in the grid,
 adds white rounded number badges to the photos, and labels the image as
-a personal prediction. It always excludes actual results. Reordering clears the
-old preview so the next saved image reflects the current picks.
+a personal prediction. Actual results stay hidden by default. **Show actual
+placements (spoilers)** explicitly loads recorded finishing places and adds red
+numbers in the opposite corner on the page and exported image. Unrecorded places
+stay blank; the white prediction numbers and chosen order do not change. This
+does not reveal retrospective biographies or episode titles in prediction mode.
+The results setting is never stored in the URL. Changing it or reordering clears
+the old preview so the next saved image reflects the current settings.
 
 Switching back to **Cast guide** restores its alphabetical order and existing
 export behavior. Prediction picks remain available while switching modes and
-grid widths on the current page. Prediction order is saved in the URL as you
-reorder; refresh, bookmark, or copy that URL to restore it. Returning to Cast
-guide clears the prediction from the current URL. The optional name remains on
-the current page only. **Reset to alphabetical**, separated below the grid,
+grid widths on the current page. Prediction order and the optional name are saved
+in the URL as you edit; refresh, bookmark, or copy that URL to restore both. Older
+order-only links still work. Returning to Cast guide clears the prediction from
+the current URL. **Reset to alphabetical**, separated below the grid,
 starts the prediction over and updates its URL.
 
 Spoiler-free pages show the whole cast with equal visual treatment in

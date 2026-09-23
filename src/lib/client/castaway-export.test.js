@@ -1,6 +1,7 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { castawayImageSrc, sortCastawaysAlphabetically } from "../castaways.js"
+import { predictionCastawayKey } from "../predictions.js"
 import { castawayCanvasSize, measureCastawayImage, wrapImageText } from "./castaway-export.js"
 
 const measure = (text, size = 1) => Array.from(text).length * size * 0.52
@@ -309,6 +310,61 @@ test("prediction exports suppress real results and retrospective narratives even
     const renderedText = after.operations.flatMap((operation) => operation.lines ?? []).join(" ")
     assert.doesNotMatch(renderedText, /Merged Tribe|Sole Survivor|Jury member|final vote|finale|unverified retrospective|previous season|decisive idol|INCLUDES SEASON RESULTS/i)
     assert.deepEqual(after.operations.filter((operation) => operation.type === "prediction_badge").map((badge) => badge.rank), [1, 2])
+  }
+})
+
+test("actual placement maps cannot change an export without the separate prediction opt-in", () => {
+  const actualPlacements = Object.fromEntries(castaways.map((person, index) => [predictionCastawayKey(person), castaways.length - index]))
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    const prediction = measureCastawayImage({ season, castaways, gridColumns, prediction: true, measure })
+    for (const showActualPlacements of [false, undefined, "true", 1]) {
+      const hidden = measureCastawayImage({ season, castaways, gridColumns, prediction: true, showSpoilers: true, showActualPlacements, actualPlacements, measure })
+      assert.deepEqual(hidden.operations, prediction.operations)
+    }
+    const guide = measureCastawayImage({ season, castaways, gridColumns, measure })
+    const ignored = measureCastawayImage({ season, castaways, gridColumns, showActualPlacements: true, actualPlacements, measure })
+    assert.deepEqual(ignored.operations, guide.operations)
+  }
+})
+
+test("explicit actual placements add separate red badges without changing picks or revealing narratives", () => {
+  const people = Array.from({ length: 21 }, (_, index) => ({
+    id: `person-${index}`,
+    name: `Castaway ${21 - index}`,
+    result_order: index + 1,
+    is_on_jury: true,
+    tribe: "SECRET_TRIBE",
+    traits: ["SECRET_TRAIT"],
+    summary: "SECRET_OUTCOME",
+    why_applied: "SECRET_NARRATIVE",
+  }))
+  const actualPlacements = {
+    [predictionCastawayKey(people[0])]: 21,
+    [predictionCastawayKey(people[4])]: 1,
+    [predictionCastawayKey(people[10])]: null,
+    [predictionCastawayKey(people[11])]: 22,
+    [predictionCastawayKey(people[12])]: "7",
+  }
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    const result = measureCastawayImage({ season, castaways: people, gridColumns, prediction: true, showSpoilers: true, showActualPlacements: true, actualPlacements, measure })
+    const picks = result.operations.filter((operation) => operation.type === "prediction_badge")
+    const actuals = result.operations.filter((operation) => operation.type === "actual_placement_badge")
+    assert.deepEqual(result.orderedCastaways, people)
+    assert.deepEqual(picks.map((badge) => badge.rank), people.map((_, index) => index + 1))
+    assert.deepEqual(actuals.map((badge) => [badge.index, badge.placement]), [[0, 21], [4, 1]])
+    for (const actual of actuals) {
+      const pick = picks.find((badge) => badge.index === actual.index)
+      const photo = result.operations.find((operation) => operation.type === "photo" && operation.index === actual.index)
+      assert.ok(actual.x > pick.x + pick.width)
+      assert.equal(actual.y, pick.y)
+      assert.ok(actual.x + actual.width <= photo.x + photo.width)
+      assert.ok(actual.y + actual.height <= photo.y + photo.height)
+      assert.equal(actual.placement, actualPlacements[predictionCastawayKey(result.orderedCastaways[photo.index])])
+    }
+    const renderedText = result.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+    assert.match(renderedText, /Actual placements shown \(spoilers\)/)
+    assert.match(renderedText, /White = your pick · Red = actual finish/)
+    assert.doesNotMatch(renderedText, /SECRET_|Finish:|Jury member|INCLUDES SEASON RESULTS/)
   }
 })
 

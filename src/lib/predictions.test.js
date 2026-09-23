@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { movePredictionCastaway, orderPredictionCastaways, predictionCastawayKey } from "./predictions.js"
+import { movePredictionCastaway, movePredictionCastawayTo, orderPredictionCastaways, predictionCastawayKey } from "./predictions.js"
 
 const castaways = [
   { id: "zoe", name: "Zoe", result_order: 1, is_on_jury: false },
@@ -64,4 +64,15 @@ test("ordering and moving do not mutate castaways, person objects, or the saved 
   assert.deepEqual(people, before)
   assert.deepEqual(order, ["id:zoe", "id:amy"])
   assert.notEqual(result, people)
+})
+
+test("dragging to a distant position preserves the complete order without mutating the draft", () => {
+  const order = Object.freeze(["id:amy", "id:ben", "id:emile", "id:zoe"])
+  assert.deepEqual(movePredictionCastawayTo(castaways, order, "id:amy", "id:emile"), ["id:ben", "id:emile", "id:amy", "id:zoe"])
+  assert.deepEqual(movePredictionCastawayTo(castaways, order, "id:zoe", "id:amy"), ["id:zoe", "id:amy", "id:ben", "id:emile"])
+  for (const [source, target] of [["id:amy", "id:amy"], ["missing", "id:amy"], ["id:amy", "missing"]]) {
+    assert.deepEqual(movePredictionCastawayTo(castaways, order, source, target), order)
+  }
+  assert.deepEqual(order, ["id:amy", "id:ben", "id:emile", "id:zoe"])
+  assert.deepEqual(movePredictionCastawayTo(castaways, ["id:zoe", "id:zoe", "missing"], "id:amy", "id:zoe"), ["id:amy", "id:zoe", "id:ben", "id:emile"])
 })

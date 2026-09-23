@@ -29,3 +29,14 @@ export function movePredictionCastaway(castaways = [], order = [], key, directio
   ;[nextOrder[index], nextOrder[nextIndex]] = [nextOrder[nextIndex], nextOrder[index]]
   return nextOrder
 }
+
+/** Drop a prediction at another person's current position, keeping everyone once. */
+export function movePredictionCastawayTo(castaways = [], order = [], key, targetKey) {
+  const nextOrder = [...new Set(orderPredictionCastaways(castaways, order).map(predictionCastawayKey))]
+  const from = nextOrder.indexOf(key)
+  const to = nextOrder.indexOf(targetKey)
+  if (from < 0 || to < 0 || from === to) return nextOrder
+  nextOrder.splice(from, 1)
+  nextOrder.splice(to, 0, key)
+  return nextOrder
+}
