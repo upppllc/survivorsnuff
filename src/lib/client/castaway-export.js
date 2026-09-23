@@ -19,6 +19,10 @@ function valueText(value) {
   return typeof value === "string" || typeof value === "number" ? String(value).trim() : ""
 }
 
+function gridColumnCount(value) {
+  return Number.isInteger(value) && value >= 3 && value <= 8 ? value : 4
+}
+
 /** Wrap every character, including long words and explicit paragraph breaks. */
 export function wrapImageText(text, maxWidth, measure) {
   if (!(maxWidth > 0)) throw new Error("Text width must be positive.")
@@ -79,10 +83,14 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
   prediction = prediction === true
   castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
   showSpoilers = !prediction && showSpoilers === true
+  const columns = gridColumnCount(gridColumns)
+  const width = columns > 5
+    ? Math.ceil((WIDTH - 2 * MARGIN - GAP * 4) / 5 * columns + 2 * MARGIN + GAP * (columns - 1))
+    : WIDTH
 
   const operations = []
-  const text = (content, x, y, width, size, weight = 400, color = COLORS.body, heading = false, align = "left") => {
-    const lines = wrapImageText(content, width, (line) => measure(line, size, weight, heading))
+  const text = (content, x, y, width, size, weight = 400, color = COLORS.body, heading = false, align = "left", singleLine = false) => {
+    const lines = singleLine ? [content] : wrapImageText(content, width, (line) => measure(line, size, weight, heading))
     const lineHeight = Math.ceil(size * 1.35)
     operations.push({ type: "text", lines, x, y, width, size, weight, color, heading, lineHeight, ...(align === "right" ? { align } : {}) })
     return y + lines.length * lineHeight
@@ -90,8 +98,9 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
 
   const title = `Survivor ${valueText(season?.season_number)}`.trim()
   const author = prediction && typeof authorName === "string" ? authorName.trim().replace(/\s+/g, " ") : ""
-  const authorWidth = 480
-  const headerWidth = WIDTH - MARGIN * 2 - (author ? authorWidth + 36 : 0)
+  const naturalAuthorWidth = author ? measure(author, 92, 700, true) : 0
+  const authorWidth = author ? Math.min(Math.max(480, naturalAuthorWidth + 2), width - MARGIN * 2 - 560 - 36) : 0
+  const headerWidth = width - MARGIN * 2 - (author ? authorWidth + 36 : 0)
   let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, headerWidth, 19, 700, COLORS.accent)
   y = text(title, MARGIN, y + 14, headerWidth, 52, 700, COLORS.ink, true)
   const subtitle = [valueText(season?.title), `${castaways.length} castaways`, prediction ? `1 = predicted winner  ·  ${castaways.length} = first eliminated` : "Alphabetical by name"]
@@ -99,14 +108,14 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
     .join("  ·  ")
   y = text(subtitle, MARGIN, y + 8, headerWidth, 22, 400, COLORS.muted)
   if (author) {
-    const authorBottom = text(author, WIDTH - MARGIN - authorWidth, 48, authorWidth, 92, 700, COLORS.accent, true, "right")
+    const authorSize = Math.min(92, 92 * (authorWidth - 2) / naturalAuthorWidth)
+    const authorBottom = text(author, width - MARGIN - authorWidth, 48, authorWidth, authorSize, 700, COLORS.accent, true, "right", true)
     y = Math.max(y, authorBottom)
   }
   if (showSpoilers) y = text("INCLUDES SEASON RESULTS", MARGIN, y + 12, headerWidth, 17, 700, COLORS.accent)
   y += 34
 
-  const columns = gridColumns === 3 || gridColumns === 5 ? gridColumns : 4
-  const cardWidth = (WIDTH - 2 * MARGIN - GAP * (columns - 1)) / columns
+  const cardWidth = (width - 2 * MARGIN - GAP * (columns - 1)) / columns
   const cards = []
   for (let index = 0; index < castaways.length; index += columns) {
     const row = []
@@ -146,7 +155,7 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
     { content: photoCredit, weight: 400, color: COLORS.muted },
     { content: "An independent fan guide. Survivor is a CBS / Paramount series.", weight: 400, color: COLORS.muted },
   ]
-  const footerWidth = WIDTH - MARGIN * 2
+  const footerWidth = width - MARGIN * 2
   const naturalWidth = footer.reduce((sum, part) => sum + measure(part.content, 17, part.weight, false), 0)
   const footerSize = Math.min(17, 17 * (footerWidth - 48 - footer.length) / naturalWidth)
   const footerWidths = footer.map((part) => measure(part.content, footerSize, part.weight, false) + 1)
@@ -157,7 +166,7 @@ export function measureCastawayImage({ season, castaways, gridColumns = 4, showS
     y = text(part.content, footerX, footerY, footerWidths[index], footerSize, part.weight, part.color)
     footerX += footerWidths[index] + footerGap
   })
-  return { width: WIDTH, height: Math.ceil(y + 48), operations, cards, orderedCastaways: castaways }
+  return { width, height: Math.ceil(y + 48), operations, cards, orderedCastaways: castaways }
 }
 
 export function castawayCanvasSize(width, height) {
@@ -338,7 +347,7 @@ export async function createCastawayImage({ season, castaways, gridColumns = 4, 
   }
   if (!blob) throw new Error("The cast image was too large for this browser. Try a desktop browser.")
   const seasonNumber = String(season?.season_number ?? "cast").replace(/[^a-z\d-]/gi, "")
-  const columnsSuffix = `-${gridColumns === 3 || gridColumns === 5 ? gridColumns : 4}-columns`
+  const columnsSuffix = `-${gridColumnCount(gridColumns)}-columns`
   return {
     blob,
     filename: prediction

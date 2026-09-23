@@ -1,9 +1,13 @@
 <script>
   import { Button, Checkbox, TextInput } from "sveltekit-ui"
+  import { untrack } from "svelte"
+  import { afterNavigate } from "$app/navigation"
 
   let { manager, featured = false } = $props()
+  afterNavigate(() => manager.restore_prediction_url())
   $effect(() => {
     const active_manager = manager
+    untrack(() => active_manager.initialize_prediction_url())
     return () => active_manager.dispose()
   })
 </script>
@@ -41,9 +45,6 @@
       </div>
     {/if}
     <div class="cast-toolbar">
-      {#if manager.is_prediction_mode}
-        <Button manager={manager.reset_prediction_button_manager} />
-      {/if}
       <div class="toolbar-actions">
         <Button manager={manager.preview_image_button_manager} />
       </div>
@@ -51,9 +52,9 @@
     <div class="export-options">
       <div class="grid-options" role="group" aria-label="Grid columns">
         <span>Grid width</span>
-        <Button manager={manager.three_columns_button_manager} />
-        <Button manager={manager.four_columns_button_manager} />
-        <Button manager={manager.five_columns_button_manager} />
+        {#each manager.grid_column_options as option (option.columns)}
+          <Button manager={option.button_manager} />
+        {/each}
         <span class="mobile-grid-note">On phones, profiles fit two across; saved images use your choice.</span>
       </div>
       {#if manager.is_prediction_mode}
@@ -130,6 +131,9 @@
       </div>
     {:else}
       <div class="empty-state"><h3>The cast is still under wraps.</h3><p>Check back for cast announcements and photos.</p></div>
+    {/if}
+    {#if manager.is_prediction_mode}
+      <div class="prediction-reset"><Button manager={manager.reset_prediction_button_manager} /></div>
     {/if}
     {#if manager.season_prepped.source_url}
       <p class="photo-credit">
@@ -230,6 +234,7 @@
   .prediction-badge { position: absolute; top: 1.2rem; left: 1.2rem; width: 4.4rem; height: 4.4rem; display: grid; place-items: center; background: #fff; color: #173e37; border-radius: 0.8rem; box-shadow: 0 2px 10px #0003; font-size: 2.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
   .prediction-position { margin: 0 0 0.8rem; color: var(--snuff-muted); font-size: 1.28rem; font-weight: 650; }
   .prediction-controls { display: flex; flex-wrap: wrap; gap: 0.64rem; margin-top: 1.6rem; }
+  .prediction-reset { display: flex; justify-content: flex-end; margin-top: 3.2rem; padding: 1.6rem 0; }
   .photo-credit { margin: 2.08rem 0 0; color: var(--snuff-muted); font-size: 1.248rem; line-height: 1.5; }
   .photo-credit a { color: inherit; }
   .empty-state { padding: 4.8rem 1.6rem; text-align: center; border: 1px dashed var(--snuff-border); border-radius: 1.6rem; }

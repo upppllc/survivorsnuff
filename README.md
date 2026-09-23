@@ -108,9 +108,10 @@ sharing is unavailable, touch and hold the preview image for photo options.
 
 Use **Zoom preview** for a closer look, **Fit preview** to see the full width,
 or **Close preview**. Generating a preview does not download anything. You can
-choose **3 across**, **4 across** (the default), or **5 across** for the page and saved image,
+choose **3 through 8 across** (**4 across** is the default) for the page and saved image,
 in either Cast guide or My prediction. Phones keep two readable page columns;
-the PNG always uses the selected count. Changing the count clears the old
+the PNG always uses the selected count. Images with 6–8 columns become wider to
+preserve the profile text width. Changing the count clears the old
 preview and preserves prediction ranks. The grid and PNGs include all available
 profile details and expand to fit them. Profiles use the full photo width over the
 page background, with subtle divider lines instead of filled cards. Saved images
@@ -118,7 +119,8 @@ use compact text and credit the photos once in the footer. The whole cast is inc
 Results follow the spoiler toggle and are hidden by default.
 
 In **My prediction**, enter **Your name (optional)** to put your name in bold
-orange at the top right of the image.
+orange at the top right of the image. The name stays on one line, fitting its
+font size to the available header space when needed.
 Leave it blank for an unnamed prediction. The regular cast guide has no name
 input or author name. Changing the name clears the old preview; the name stays while
 switching modes and grid widths on the current page.
@@ -132,8 +134,11 @@ old preview so the next saved image reflects the current picks.
 
 Switching back to **Cast guide** restores its alphabetical order and existing
 export behavior. Prediction picks remain available while switching modes and
-grid widths on the current page; download or share the image before navigating away.
-**Reset to alphabetical** starts the prediction over.
+grid widths on the current page. Prediction order is saved in the URL as you
+reorder; refresh, bookmark, or copy that URL to restore it. Returning to Cast
+guide clears the prediction from the current URL. The optional name remains on
+the current page only. **Reset to alphabetical**, separated below the grid,
+starts the prediction over and updates its URL.
 
 Spoiler-free pages show the whole cast with equal visual treatment in
 alphabetical name order. Generic promotional sections do not feature selected

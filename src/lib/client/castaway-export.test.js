@@ -48,47 +48,52 @@ test("the compact image defaults to four columns and includes every castaway", (
   }))
 })
 
-test("five-column images retain all 21 castaways, fit their text, and keep prediction badges with the chosen photos", () => {
+test("three- through eight-column images retain all 21 castaways, legible card widths, and matching prediction badges", () => {
   const people = Array.from({ length: 21 }, (_, index) => ({
     ...castaways[index % castaways.length],
     name: `Castaway ${String(21 - index).padStart(2, "0")} With A Long Surname`,
     image_url: `/cast/person-${21 - index}.webp`,
   }))
-  for (const prediction of [false, true]) {
-    const result = measureCastawayImage({ season, castaways: people, gridColumns: 5, prediction, measure })
-    const ordered = prediction ? people : sortCastawaysAlphabetically(people)
-    assert.equal(result.cards.length, 21)
-    assert.deepEqual(result.orderedCastaways, ordered)
-    assert.equal(new Set(result.cards.map((card) => card.x)).size, 5)
-    assert.equal(new Set(result.cards.map((card) => card.y)).size, 5)
-    assert.equal(result.cards[20].x, result.cards[0].x)
-    assert.ok(result.cards[20].y > result.cards[19].y + result.cards[19].height)
-    for (const [index, card] of result.cards.entries()) {
-      assert.ok(card.x >= 0 && card.x + card.width <= result.width)
-      const right = index % 5 < 4 ? result.cards[index + 1] : null
-      if (right) assert.ok(right.x > card.x + card.width)
-      const below = result.cards[index + 5]
-      if (below) assert.ok(below.y > card.y + card.height)
-      const start = result.operations.indexOf(card) + 1
-      const end = result.cards[index + 1] ? result.operations.indexOf(result.cards[index + 1]) : result.operations.length
-      const cardOperations = result.operations.slice(start, end)
-      const photo = cardOperations.find((operation) => operation.type === "photo")
-      assert.equal(result.orderedCastaways[photo.index].image_url, ordered[index].image_url)
-      const name = cardOperations.find((operation) => operation.type === "text")
-      assert.equal(name.lines.join(" "), ordered[index].name)
-      for (const operation of cardOperations.filter((operation) => operation.type === "text" && operation.y < card.y + card.height)) {
-        assert.equal(operation.x, photo.x)
-        assert.equal(operation.width, photo.width)
-        assert.ok(operation.y + operation.lines.length * operation.lineHeight <= card.y + card.height)
-        assert.ok(operation.lines.every((line) => measure(line, operation.size) <= operation.width))
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const prediction of [false, true]) {
+      const result = measureCastawayImage({ season, castaways: people, gridColumns, prediction, measure })
+      const ordered = prediction ? people : sortCastawaysAlphabetically(people)
+      assert.equal(result.cards.length, 21)
+      if (gridColumns <= 5) assert.equal(result.width, 1440)
+      else assert.ok(result.width > 1440)
+      assert.ok(result.cards.every((card) => card.width >= 244.8))
+      assert.deepEqual(result.orderedCastaways, ordered)
+      assert.equal(new Set(result.cards.map((card) => card.x)).size, gridColumns)
+      assert.equal(new Set(result.cards.map((card) => card.y)).size, Math.ceil(21 / gridColumns))
+      assert.equal(result.cards[20].x, result.cards[20 % gridColumns].x)
+      assert.ok(result.cards[20].y > result.cards[20 - gridColumns].y + result.cards[20 - gridColumns].height)
+      for (const [index, card] of result.cards.entries()) {
+        assert.ok(card.x >= 0 && card.x + card.width <= result.width)
+        const right = index % gridColumns < gridColumns - 1 ? result.cards[index + 1] : null
+        if (right) assert.ok(right.x > card.x + card.width)
+        const below = result.cards[index + gridColumns]
+        if (below) assert.ok(below.y > card.y + card.height)
+        const start = result.operations.indexOf(card) + 1
+        const end = result.cards[index + 1] ? result.operations.indexOf(result.cards[index + 1]) : result.operations.length
+        const cardOperations = result.operations.slice(start, end)
+        const photo = cardOperations.find((operation) => operation.type === "photo")
+        assert.equal(result.orderedCastaways[photo.index].image_url, ordered[index].image_url)
+        const name = cardOperations.find((operation) => operation.type === "text")
+        assert.equal(name.lines.join(" "), ordered[index].name)
+        for (const operation of cardOperations.filter((operation) => operation.type === "text" && operation.y < card.y + card.height)) {
+          assert.equal(operation.x, photo.x)
+          assert.equal(operation.width, photo.width)
+          assert.ok(operation.y + operation.lines.length * operation.lineHeight <= card.y + card.height)
+          assert.ok(operation.lines.every((line) => measure(line, operation.size) <= operation.width))
+        }
+        const badge = cardOperations.find((operation) => operation.type === "prediction_badge")
+        if (prediction) {
+          assert.equal(badge.rank, index + 1)
+          assert.equal(badge.index, photo.index)
+          assert.ok(badge.x >= photo.x && badge.x + badge.width <= photo.x + photo.width)
+          assert.ok(badge.y >= photo.y && badge.y + badge.height <= photo.y + photo.height)
+        } else assert.equal(badge, undefined)
       }
-      const badge = cardOperations.find((operation) => operation.type === "prediction_badge")
-      if (prediction) {
-        assert.equal(badge.rank, index + 1)
-        assert.equal(badge.index, photo.index)
-        assert.ok(badge.x >= photo.x && badge.x + badge.width <= photo.x + photo.width)
-        assert.ok(badge.y >= photo.y && badge.y + badge.height <= photo.y + photo.height)
-      } else assert.equal(badge, undefined)
     }
   }
 })
@@ -96,13 +101,13 @@ test("five-column images retain all 21 castaways, fit their text, and keep predi
 test("grid columns default to four", () => {
   for (const prediction of [false, true]) {
     const original = measureCastawayImage({ season, castaways, prediction, measure })
-    for (const gridColumns of [4, 0, 2, 6, "5", null]) {
+    for (const gridColumns of [4, 0, 2, 9, 5.5, "5", null]) {
       assert.deepEqual(measureCastawayImage({ season, castaways, gridColumns, prediction, measure }), original)
     }
   }
 })
 
-test("optional prediction names align at the top right and wrap without overlapping the header or cast", () => {
+test("optional prediction names stay on one line at the top right without overlapping the header or cast", () => {
   for (const prediction of [false, true]) {
     const original = measureCastawayImage({ season, castaways, prediction, measure })
     for (const authorName of ["", " \n\t ", null, undefined, 42, { name: "Jordan" }]) {
@@ -114,17 +119,16 @@ test("optional prediction names align at the top right and wrap without overlapp
       continue
     }
     const author = named.operations.find((operation) => operation.align === "right")
-    assert.equal(author.lines.join(" "), "Zoë de León 🏝️")
+    assert.deepEqual(author.lines, ["Zoë de León 🏝️"])
     assert.equal(author.y, named.operations[0].y)
     assert.equal(author.x + author.width, named.width - named.cards[0].x)
     assert.ok(named.cards[0].y > author.y + author.lines.length * author.lineHeight)
 
     const authorName = "Zoë🙂".repeat(100)
-    for (const gridColumns of [3, 4, 5]) {
+    for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
       const longName = measureCastawayImage({ season, castaways, gridColumns, prediction, authorName, measure })
       const wrapped = longName.operations.find((operation) => operation.align === "right")
-      assert.ok(wrapped.lines.length > 1)
-      assert.equal(wrapped.lines.join(""), authorName)
+      assert.deepEqual(wrapped.lines, [authorName])
       assert.ok(wrapped.lines.every((line) => measure(line, wrapped.size) <= wrapped.width))
       const firstCard = longName.cards[0]
       for (const operation of longName.operations.slice(0, longName.operations.indexOf(firstCard))) {
@@ -145,7 +149,7 @@ test("all castaway details and long biographies fit inside grid cards without ov
     name: index === 0 ? "A very long name with several family names and a long nickname" : castaway.name,
     life_experience: `${longBio}\n\nA final paragraph that must remain visible.`,
   }))
-  for (const gridColumns of [3, 4, 5]) {
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     const result = measureCastawayImage({ season, castaways: people, gridColumns, measure, showSpoilers: true })
     assert.equal(new Set(result.cards.map((card) => card.x)).size, gridColumns)
     assert.equal(result.cards.length, people.length)
@@ -179,7 +183,7 @@ test("all castaway details and long biographies fit inside grid cards without ov
 })
 
 test("results are omitted unless explicitly requested with each column count", () => {
-  for (const gridColumns of [3, 4, 5]) {
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     const without = measureCastawayImage({ season, castaways, gridColumns, measure })
     const withResults = measureCastawayImage({ season, castaways, gridColumns, measure, showSpoilers: true })
     const textWithout = without.operations.flatMap((operation) => operation.lines ?? []).join(" ")
@@ -199,7 +203,7 @@ test("outcome-ordered input is alphabetized without changing names or photo asso
   const ordered = sortCastawaysAlphabetically(people)
   assert.deepEqual(ordered.map((person) => person.name), ["Ana Example", "Brady Example", "Zoë Example"])
   assert.equal(people[0].name, "Zoë Example", "sorting does not mutate input data")
-  for (const gridColumns of [3, 4, 5]) {
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     const result = measureCastawayImage({ season, castaways: people, gridColumns, measure })
     assert.equal(result.operations.filter((operation) => operation.type === "prediction_badge").length, 0)
     assert.deepEqual(result.orderedCastaways.map((person) => person.image_url), ["/cast/ana.jpg", "/cast/brady.jpg", "/cast/zoe.jpg"])
@@ -230,7 +234,7 @@ test("spoiler-free exports are identical when results, narratives, tribe assignm
     unique_gameplay: "Played the decisive idol at final five.",
     profile_spoiler_free: true,
   })).reverse()
-  for (const gridColumns of [3, 4, 5]) {
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     const before = measureCastawayImage({ season, castaways: people, gridColumns, measure })
     const after = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, measure })
     assert.deepEqual(after.operations, before.operations)
@@ -250,7 +254,7 @@ test("prediction exports preserve the chosen order and associate numbered badges
     { name: "Ana Example", image_url: "/cast/ana.webp" },
     { name: "Brady Example", image_url: "/cast/brady.webp" },
   ]
-  for (const gridColumns of [3, 4, 5]) {
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     const result = measureCastawayImage({ season, castaways: people, gridColumns, prediction: true, measure })
     assert.deepEqual(result.orderedCastaways, people)
     assert.notEqual(result.orderedCastaways, people, "the layout owns its array without mutating the chosen order")
@@ -296,7 +300,7 @@ test("prediction exports suppress real results and retrospective narratives even
     unique_gameplay: "Played the decisive idol at final five.",
     profile_spoiler_free: true,
   }))
-  for (const gridColumns of [3, 4, 5]) {
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     const before = measureCastawayImage({ season, castaways: people, gridColumns, prediction: true, measure })
     const after = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, prediction: true, showSpoilers: true, measure })
     assert.deepEqual(after.operations, before.operations)
@@ -309,21 +313,23 @@ test("prediction exports suppress real results and retrospective narratives even
 })
 
 test("website, photo credit, and disclaimer share one footer row without wrapping or overlapping", () => {
-  for (const photo_credit of ["Robert Voets / CBS", "Robert Voets / CBS\nAdditional photographers and production contributors: ".repeat(4)]) {
-    const result = measureCastawayImage({ season: { ...season, photo_credit }, castaways, measure })
-    const footer = result.operations.slice(-3)
-    assert.equal(new Set(footer.map((operation) => operation.y)).size, 1)
-    assert.deepEqual(footer.map((operation) => operation.lines), [
-      ["survivorsnuff.com"],
-      [photo_credit.trim().replace(/\s+/g, " ")],
-      ["An independent fan guide. Survivor is a CBS / Paramount series."],
-    ])
-    assert.ok(footer[0].y > Math.max(...result.cards.map((card) => card.y + card.height)))
-    for (const [index, operation] of footer.entries()) {
-      assert.ok(measure(operation.lines[0], operation.size) <= operation.width)
-      assert.ok(operation.x >= result.cards[0].x)
-      assert.ok(operation.x + operation.width <= result.width - result.cards[0].x + 0.001)
-      if (footer[index + 1]) assert.ok(operation.x + operation.width < footer[index + 1].x)
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const photo_credit of ["Robert Voets / CBS", "Robert Voets / CBS\nAdditional photographers and production contributors: ".repeat(4)]) {
+      const result = measureCastawayImage({ season: { ...season, photo_credit }, castaways, gridColumns, measure })
+      const footer = result.operations.slice(-3)
+      assert.equal(new Set(footer.map((operation) => operation.y)).size, 1)
+      assert.deepEqual(footer.map((operation) => operation.lines), [
+        ["survivorsnuff.com"],
+        [photo_credit.trim().replace(/\s+/g, " ")],
+        ["An independent fan guide. Survivor is a CBS / Paramount series."],
+      ])
+      assert.ok(footer[0].y > Math.max(...result.cards.map((card) => card.y + card.height)))
+      for (const [index, operation] of footer.entries()) {
+        assert.ok(measure(operation.lines[0], operation.size) <= operation.width)
+        assert.ok(operation.x >= result.cards[0].x)
+        assert.ok(operation.x + operation.width <= result.width - result.cards[0].x + 0.001)
+        if (footer[index + 1]) assert.ok(operation.x + operation.width < footer[index + 1].x)
+      }
     }
   }
 })

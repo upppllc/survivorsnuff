@@ -1,9 +1,12 @@
 import { create_button_manager, create_checkbox_manager, create_text_input_manager } from "sveltekit-ui"
 import { tick, untrack } from "svelte"
+import { replaceState } from "$app/navigation"
+import { page } from "$app/state"
 import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "$lib/castaways.js"
 import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
 import { prepareCastawayShareFile, shareCastawayFile } from "$lib/client/castaway-share.js"
 import { predictionCastawayKey, orderPredictionCastaways, movePredictionCastaway } from "$lib/predictions.js"
+import { readPredictionUrl, writePredictionUrl } from "$lib/prediction-url.js"
 
 export function create_season_manager(config) {
   let grid_columns = $state(4)
@@ -25,6 +28,8 @@ export function create_season_manager(config) {
   let export_revision = 0
   let spoilers_revision = 0
   let spoilers_request = null
+  let prediction_url_initialized = false
+  let prediction_url_pathname = ""
   const preview_id = `cast-sheet-preview-${config?.season?.season_number}`
 
   const author_name_text_input_manager = create_text_input_manager({
@@ -154,39 +159,27 @@ export function create_season_manager(config) {
     on_click: () => set_prediction_mode(true),
   })
   const reset_prediction_button_manager = create_button_manager({
-    type: "plain",
+    type: "outlined",
     text: "Reset to alphabetical",
     is_compressed: true,
     on_click: () => {
       prediction_order = []
       prediction_announcement = "Prediction order reset to alphabetical."
       invalidate_saved_image()
+      persist_prediction_url()
     },
   })
-  const three_columns_button_manager = create_button_manager({
-    type: "outlined",
-    text: "3 across",
-    aria_label: () => grid_columns === 3 ? "3 across, selected" : "3 across",
-    selected_type: () => grid_columns === 3 ? "selected" : null,
-    is_compressed: true,
-    on_click: () => set_grid_columns(3),
-  })
-  const four_columns_button_manager = create_button_manager({
-    type: "outlined",
-    text: "4 across",
-    aria_label: () => grid_columns === 4 ? "4 across, selected" : "4 across",
-    selected_type: () => grid_columns === 4 ? "selected" : null,
-    is_compressed: true,
-    on_click: () => set_grid_columns(4),
-  })
-  const five_columns_button_manager = create_button_manager({
-    type: "outlined",
-    text: "5 across",
-    aria_label: () => grid_columns === 5 ? "5 across, selected" : "5 across",
-    selected_type: () => grid_columns === 5 ? "selected" : null,
-    is_compressed: true,
-    on_click: () => set_grid_columns(5),
-  })
+  const grid_column_options = [3, 4, 5, 6, 7, 8].map((columns) => ({
+    columns,
+    button_manager: create_button_manager({
+      type: "outlined",
+      text: `${columns} across`,
+      aria_label: () => grid_columns === columns ? `${columns} across, selected` : `${columns} across`,
+      selected_type: () => grid_columns === columns ? "selected" : null,
+      is_compressed: true,
+      on_click: () => set_grid_columns(columns),
+    }),
+  }))
   const preview_image_button_manager = create_button_manager({
     text: () => is_generating ? "Creating preview…" : is_prediction_mode ? "Preview prediction" : "Preview image",
     aria_label: () => is_generating ? "Creating image preview" : is_prediction_mode ? "Preview prediction" : "Preview image",
@@ -239,7 +232,7 @@ export function create_season_manager(config) {
   })
   const grid_description = $derived(`${column_name(grid_columns)}-column grid`)
   const export_hint = $derived(is_prediction_mode
-    ? `Your ${grid_description} image includes all ${prediction_castaways.length} castaways and their profiles in your chosen order, with numbered photo badges. Your picks stay while you switch modes; save an image before leaving this page.`
+    ? `Your ${grid_description} image includes all ${prediction_castaways.length} castaways and their profiles in your chosen order, with numbered photo badges. Your order is saved in this page’s URL, so you can refresh or bookmark it. Your picks also stay while you switch modes.`
     : `Castaways are listed alphabetically by name. Preview the ${grid_description} with full profiles, then save it as a PNG.`)
 
   function get_prediction_controls(person) {
@@ -276,6 +269,7 @@ export function create_season_manager(config) {
     is_prediction_mode = value
     prediction_announcement = ""
     invalidate_saved_image()
+    persist_prediction_url()
   }
 
   function move_prediction(key, direction) {
@@ -285,6 +279,7 @@ export function create_season_manager(config) {
     const person = castaways_prepped.find((item) => predictionCastawayKey(item) === key)
     prediction_announcement = `${person.name} is now your #${rank} pick${rank === 1 ? ", your predicted winner" : ""}.`
     invalidate_saved_image()
+    persist_prediction_url()
     void tick().then(() => {
       if (disposed || !is_prediction_mode) return
       const controls = prediction_controls.get(key)
@@ -293,6 +288,39 @@ export function create_season_manager(config) {
       const next_focus = preferred.is_disabled ? fallback : preferred
       next_focus.focus()
     })
+  }
+
+  function initialize_prediction_url() {
+    // Run after hydration, without subscribing the owning component to draft state.
+    untrack(() => {
+      if (disposed || prediction_url_initialized || typeof window === "undefined") return
+      prediction_url_initialized = true
+      prediction_url_pathname = window.location.pathname
+      restore_prediction_url()
+      window.addEventListener("popstate", restore_prediction_url)
+    })
+  }
+
+  function restore_prediction_url() {
+    if (disposed || !prediction_url_initialized || window.location.pathname !== prediction_url_pathname) return
+    const restored = readPredictionUrl(window.location.href, config?.season?.season_number, config?.castaways ?? [])
+    const next_mode = restored !== null
+    const order_changed = restored && JSON.stringify(restored.order) !== JSON.stringify(prediction_order)
+    if (next_mode === is_prediction_mode && !order_changed) return
+    set_show_spoilers(false)
+    if (restored) prediction_order = restored.order
+    is_prediction_mode = next_mode
+    prediction_announcement = restored ? "Prediction order restored from this link." : ""
+    invalidate_saved_image()
+  }
+
+  function persist_prediction_url() {
+    if (disposed || !prediction_url_initialized || window.location.pathname !== prediction_url_pathname) return
+    const next = writePredictionUrl(window.location.href, config?.season?.season_number, config?.castaways ?? [], is_prediction_mode ? prediction_order : null)
+    if (next.href !== window.location.href) {
+      // Keep SvelteKit's router state and any unrelated page state intact.
+      replaceState(next, untrack(() => page.state))
+    }
   }
 
   function invalidate_saved_image() {
@@ -308,11 +336,11 @@ export function create_season_manager(config) {
   }
 
   function column_name(value) {
-    return value === 3 ? "three" : value === 5 ? "five" : "four"
+    return ({ 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight" })[value] ?? "four"
   }
 
   function set_grid_columns(value) {
-    const next_columns = value === 3 || value === 5 ? value : 4
+    const next_columns = Number.isInteger(value) && value >= 3 && value <= 8 ? value : 4
     if (disposed || grid_columns === next_columns) return
     grid_columns = next_columns
     invalidate_saved_image()
@@ -432,6 +460,7 @@ export function create_season_manager(config) {
 
   function dispose() {
     disposed = true
+    if (prediction_url_initialized) window.removeEventListener("popstate", restore_prediction_url)
     spoilers_revision++
     spoilers_request?.abort()
     invalidate_saved_image()
@@ -453,9 +482,7 @@ export function create_season_manager(config) {
     author_name_text_input_manager,
     show_spoilers_checkbox_manager,
     view_seasons_button_manager,
-    three_columns_button_manager,
-    four_columns_button_manager,
-    five_columns_button_manager,
+    grid_column_options,
     get grid_columns() { return grid_columns },
     preview_image_button_manager,
     share_photo_button_manager,
@@ -473,6 +500,8 @@ export function create_season_manager(config) {
     get is_show_spoilers() { return is_show_spoilers },
     set is_show_spoilers(value) { set_show_spoilers(value) },
     preview_image,
+    initialize_prediction_url,
+    restore_prediction_url,
     dispose,
   }
 }
