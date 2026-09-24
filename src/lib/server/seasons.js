@@ -1,6 +1,7 @@
 import { env } from "$env/dynamic/private"
 import { error } from "@sveltejs/kit"
 import currentSeason from "$lib/data/season-51.js"
+import { applyAiredResults } from "./season-aired-results.js"
 
 export const LATEST_SEASON = 51
 
@@ -51,10 +52,10 @@ export async function getSeason(fetch, seasonNumber) {
     return {
       season: { ...currentSeason.season, ...seasons?.[0] },
       episodes: mergeRows(currentSeason.episodes, episodes, "episode_number"),
-      castaways: mergeRows(currentSeason.castaways, castaways, "name"),
+      castaways: applyAiredResults(number, mergeRows(currentSeason.castaways, castaways, "name")),
     }
   }
   if (!seasons || !episodes || !castaways) error(503, "The season archive is temporarily unavailable. Please try again shortly.")
   if (!seasons.length) error(404, "Season not found")
-  return { season: seasons[0], episodes, castaways }
+  return { season: seasons[0], episodes, castaways: applyAiredResults(number, castaways) }
 }

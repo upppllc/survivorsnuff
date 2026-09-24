@@ -368,6 +368,92 @@ test("explicit actual placements add separate red badges without changing picks 
   }
 })
 
+test("actual-order prediction images keep original pick ranks and photo identities in every grid and Letter mode", () => {
+  const people = Array.from({ length: 21 }, (_, index) => ({
+    id: `prediction-${index}`,
+    name: `Castaway ${21 - index}`,
+    image_url: `/cast/prediction-${index}.webp`,
+    result_order: index + 1,
+    summary: "SECRET_NARRATIVE",
+  }))
+  const actualPlacements = {
+    [predictionCastawayKey(people[0])]: 21,
+    [predictionCastawayKey(people[5])]: 20,
+    [predictionCastawayKey(people[9])]: "2",
+    [predictionCastawayKey(people[10])]: 22,
+  }
+  const expected = [...sortCastawaysAlphabetically(people.filter((_, index) => index !== 0 && index !== 5)), people[5], people[0]]
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const fitLetter of [false, true]) {
+      const options = { season, castaways: people, gridColumns, fitLetter, prediction: true, showActualPlacements: true, actualPlacements, measure }
+      const original = measureCastawayImage(options)
+      assert.deepEqual(original.orderedCastaways, people)
+      const result = measureCastawayImage({ ...options, resultOrder: true })
+      assert.deepEqual(result.orderedCastaways, expected)
+      const photos = result.operations.filter((operation) => operation.type === "photo")
+      const picks = result.operations.filter((operation) => operation.type === "prediction_badge")
+      const actuals = result.operations.filter((operation) => operation.type === "actual_placement_badge")
+      assert.equal(photos.length, people.length)
+      assert.equal(picks.length, people.length)
+      assert.deepEqual(actuals.map((badge) => [badge.index, badge.placement]), [[19, 20], [20, 21]])
+      for (const [index, photo] of photos.entries()) {
+        const person = result.orderedCastaways[photo.index]
+        assert.equal(person.image_url, expected[index].image_url)
+        assert.equal(picks.find((badge) => badge.index === photo.index).rank, people.indexOf(person) + 1)
+        const name = result.operations.slice(result.operations.indexOf(photo) + 1).find((operation) => operation.type === "text")
+        assert.equal(name.lines.join(" "), person.name)
+      }
+      const renderedText = result.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+      assert.match(renderedText, /Actual finishing order · White numbers = your prediction/)
+      assert.doesNotMatch(renderedText, /Alphabetical by name|1 = predicted winner|SECRET_NARRATIVE|Finish:/)
+      if (fitLetter) assert.equal(result.width * 22, result.height * 17)
+    }
+  }
+  assert.equal(people[0].id, "prediction-0", "result sorting does not mutate the original prediction")
+})
+
+test("actual-order cast guides derive finishing places only from their opted-in cast data", () => {
+  const people = [
+    { id: "zoe", name: "Zoë", result_order: 5 },
+    { id: "david", name: "David" },
+    { id: "ana", name: "Ana", result_order: 4 },
+    { id: "carla", name: "Carla", result_order: null },
+    { id: "beth", name: "Beth", result_order: "2" },
+  ]
+  const actualPlacements = { "id:david": 5, "id:carla": 1, "id:zoe": 2 }
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const fitLetter of [false, true]) {
+      const options = { season, castaways: people, gridColumns, fitLetter, showSpoilers: true, actualPlacements, measure }
+      const alphabetical = measureCastawayImage(options)
+      assert.deepEqual(alphabetical.orderedCastaways.map((person) => person.name), ["Ana", "Beth", "Carla", "David", "Zoë"])
+      const result = measureCastawayImage({ ...options, resultOrder: true })
+      assert.deepEqual(result.orderedCastaways.map((person) => person.name), ["Beth", "Carla", "David", "Ana", "Zoë"])
+      assert.ok(result.operations.every((operation) => !operation.type.endsWith("_badge")))
+      const renderedText = result.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+      assert.match(renderedText, /Actual finishing order/)
+      assert.doesNotMatch(renderedText, /Alphabetical by name|White numbers/)
+      if (fitLetter) assert.equal(result.width * 22, result.height * 17)
+    }
+  }
+})
+
+test("actual result ordering requires a strict boolean and the matching explicit spoiler opt-in", () => {
+  const actualPlacements = Object.fromEntries(castaways.map((person, index) => [predictionCastawayKey(person), castaways.length - index]))
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const prediction of [false, true]) {
+      const options = { season, castaways, gridColumns, prediction, actualPlacements, measure }
+      const hidden = measureCastawayImage(options)
+      const ignored = measureCastawayImage({ ...options, resultOrder: true, showSpoilers: prediction, showActualPlacements: !prediction })
+      assert.deepEqual(ignored, hidden)
+      const optedIn = { ...options, showSpoilers: !prediction, showActualPlacements: prediction }
+      const unordered = measureCastawayImage(optedIn)
+      for (const resultOrder of [false, "true", 1]) {
+        assert.deepEqual(measureCastawayImage({ ...optedIn, resultOrder }), unordered)
+      }
+    }
+  }
+})
+
 test("website, photo credit, and disclaimer share one footer row without wrapping or overlapping", () => {
   for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
     for (const photo_credit of ["Robert Voets / CBS", "Robert Voets / CBS\nAdditional photographers and production contributors: ".repeat(4)]) {

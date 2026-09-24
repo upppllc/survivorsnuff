@@ -149,6 +149,20 @@ does not reveal retrospective biographies or episode titles in prediction mode.
 The results setting is never stored in the URL. Changing it or reordering clears
 the old preview so the next saved image reflects the current settings.
 
+After revealing spoilers, **Sort by** offers **Actual order** alongside
+**My prediction** (in prediction mode) or **Alphabetical** (in Cast guide).
+Castaways without a recorded finish appear alphabetically first; recorded places
+follow from best to last, so recent eliminations sit above the first out.
+This order also applies to previews, downloads, and printing. White prediction
+numbers stay attached to the original picks, and red numbers show actual finishes.
+Switch back to **My prediction** to use the reorder controls. Sorting never edits
+the saved prediction or URL. Hiding spoilers or navigating resets the sort.
+
+Reviewed aired placements are also kept in `src/lib/server/season-aired-results.js`
+so they remain available during backend outages. Keep outcomes in server-only
+modules, never in the client preseason facts or permanent prediction-code registry.
+Normal page and episode responses continue stripping all results before serialization.
+
 Switching back to **Cast guide** restores its alphabetical order and existing
 export behavior. Prediction picks remain available while switching modes and
 grid widths on the current page. Prediction order and the optional name are saved

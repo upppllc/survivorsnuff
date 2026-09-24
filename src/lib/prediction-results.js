@@ -1,4 +1,5 @@
 import { predictionCastawayKey } from "./predictions.js"
+import { sortCastawaysAlphabetically } from "./castaways.js"
 
 const isPerson = (value) => value !== null && typeof value === "object" && !Array.isArray(value)
 
@@ -85,4 +86,13 @@ export function actualPlacementFor(person, actualPlacements, castSize) {
   if (actualPlacements instanceof Map) return validPlacement(actualPlacements.get(key), castSize)
   if (!isPerson(actualPlacements) || !Object.hasOwn(actualPlacements, key)) return null
   return validPlacement(actualPlacements[key], castSize)
+}
+
+/** After explicit opt-in: unknown places first, then recorded places ascending. */
+export function sortCastawaysByActualPlacement(castaways = [], actualPlacements) {
+  return sortCastawaysAlphabetically(castaways).sort((a, b) => {
+    const aPlacement = actualPlacementFor(a, actualPlacements, castaways.length) ?? 0
+    const bPlacement = actualPlacementFor(b, actualPlacements, castaways.length) ?? 0
+    return aPlacement - bPlacement
+  })
 }

@@ -46,10 +46,13 @@
         <div class="author-input"><TextInput manager={manager.author_name_text_input_manager} /></div>
       {/if}
       <div class="spoilers"><Checkbox manager={manager.show_spoilers_checkbox_manager} /><label for={manager.show_spoilers_checkbox_manager.id}>{manager.is_prediction_mode ? "Show actual placements (spoilers)" : "Show results & spoilers"}</label></div>
+      {#if manager.is_show_spoilers || manager.is_show_actual_placements}
+        <div class="sort-options" role="group" aria-label="Sort by"><Dropdown manager={manager.sort_dropdown_manager} /></div>
+      {/if}
       <div class="toolbar-preview"><Button manager={manager.preview_image_button_manager} /></div>
     </div>
-    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}#1 is your predicted winner. #{manager.castaways_prepped.length} is your predicted first out. Use Up and Down buttons or drag and drop to reorder positions.{/if}</p>
-    {#if manager.is_show_actual_placements}<p class="placements-hint">Red numbers show actual finishing places recorded so far. Unrecorded places stay blank.</p>{/if}
+    <p class="export-hint">{manager.export_hint}{#if manager.is_prediction_mode}{" "}#1 is your predicted winner. #{manager.castaways_prepped.length} is your predicted first out. {manager.can_edit_prediction ? "Use Up and Down buttons or drag and drop to reorder positions." : "Choose My prediction under Sort by to edit your picks."}{/if}</p>
+    {#if manager.results_hint}<p class="placements-hint">{manager.results_hint}</p>{/if}
     <p class="prediction-announcement" role="status" aria-live="polite" aria-atomic="true">{manager.prediction_announcement}</p>
     <div aria-live="polite">
       {#if manager.spoilers_loading}<p class="export-hint" role="status">Loading spoilers… You can turn the option off to keep them hidden.</p>{/if}
@@ -77,10 +80,10 @@
     {#if manager.display_castaways.length}
       <div class="cast-grid">
         {#each manager.display_castaways as person (person.id ?? person.name)}
-          <article class="cast-card" class:prediction-card={manager.is_prediction_mode}
+          <article class="cast-card" class:prediction-card={manager.can_edit_prediction}
             class:is-dragging={manager.is_prediction_mode && person.prediction_key === manager.dragged_prediction_key}
             class:is-drop-target={manager.is_prediction_mode && person.prediction_key === manager.drop_prediction_key && person.prediction_key !== manager.dragged_prediction_key}
-            draggable={manager.is_prediction_mode}
+            draggable={manager.can_edit_prediction}
             ondragstart={(event) => manager.start_prediction_drag(event, person)}
             ondragover={(event) => manager.over_prediction_drag(event, person)}
             ondrop={(event) => manager.drop_prediction(event, person)}
@@ -111,7 +114,7 @@
                 </dl>
               {/if}
               {#each person.bios as bio}<div class="bio"><h4>{bio.label}</h4><p>{bio.value}</p></div>{/each}
-              {#if manager.is_prediction_mode}
+              {#if manager.can_edit_prediction}
                 <div class="prediction-controls" role="group" aria-label={`Change ${person.name}'s prediction rank`}>
                   <Button manager={person.move_up_button_manager} />
                   <Button manager={person.move_down_button_manager} />
@@ -124,7 +127,7 @@
     {:else}
       <div class="empty-state"><h3>The cast is still under wraps.</h3><p>Check back for cast announcements and photos.</p></div>
     {/if}
-    {#if manager.is_prediction_mode}
+    {#if manager.can_edit_prediction}
       <div class="prediction-reset"><Button manager={manager.reset_prediction_button_manager} /></div>
     {/if}
     {#if manager.season_prepped.source_url}
@@ -185,6 +188,7 @@
   .toolbar-preview { display: flex; justify-content: flex-end; margin-left: auto; }
   .author-input { width: min(100%, 24rem); }
   .grid-options { width: 12rem; flex-shrink: 0; }
+  .sort-options { width: 17rem; flex-shrink: 0; }
   .cast-mode { display: flex; gap: 0.56rem; }
   .prediction-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   a:focus-visible, .export-preview-scroll:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }

@@ -1,5 +1,5 @@
 import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "../castaways.js"
-import { actualPlacementFor } from "../prediction-results.js"
+import { actualPlacementFor, buildActualPlacements, sortCastawaysByActualPlacement } from "../prediction-results.js"
 
 const WIDTH = 1440
 const MARGIN = 60
@@ -81,12 +81,16 @@ function fieldsFor(castaway, showSpoilers) {
 }
 
 /** Pure layout pass shared by rendering and geometry tests. */
-export function measureCastawayImage({ season, castaways, gridColumns = 7, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {}, fitLetter = false, measure }) {
+export function measureCastawayImage({ season, castaways, gridColumns = 7, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {}, resultOrder = false, fitLetter = false, measure }) {
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
-  castaways = prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
   showSpoilers = !prediction && showSpoilers === true
   showActualPlacements = prediction && showActualPlacements === true
+  resultOrder = resultOrder === true && (showSpoilers || showActualPlacements)
+  const predictionRanks = new Map(prediction ? castaways.map((person, index) => [person, index + 1]) : [])
+  castaways = resultOrder
+    ? sortCastawaysByActualPlacement(castaways, prediction ? actualPlacements : buildActualPlacements(castaways, castaways))
+    : prediction ? [...castaways] : sortCastawaysAlphabetically(castaways)
   const columns = gridColumnCount(gridColumns)
   const width = columns > 5
     ? Math.ceil((WIDTH - 2 * MARGIN - GAP * 4) / 5 * columns + 2 * MARGIN + GAP * (columns - 1))
@@ -107,7 +111,10 @@ export function measureCastawayImage({ season, castaways, gridColumns = 7, showS
   const headerWidth = width - MARGIN * 2 - (author ? authorWidth + 36 : 0)
   let y = text(prediction ? "SURVIVOR SNUFF  /  MY ELIMINATION PREDICTION" : "SURVIVOR SNUFF  /  CAST GUIDE", MARGIN, 48, headerWidth, 19, 700, COLORS.accent)
   y = text(title, MARGIN, y + 10, headerWidth, 52, 700, COLORS.ink, true)
-  const subtitle = [valueText(season?.title), `${castaways.length} castaways`, prediction ? `1 = predicted winner  ·  ${castaways.length} = first eliminated` : "Alphabetical by name"]
+  const orderLabel = resultOrder
+    ? `Actual finishing order${prediction ? " · White numbers = your prediction" : ""}`
+    : prediction ? `1 = predicted winner  ·  ${castaways.length} = first eliminated` : "Alphabetical by name"
+  const subtitle = [valueText(season?.title), `${castaways.length} castaways`, orderLabel]
     .filter(Boolean)
     .join("  ·  ")
   y = text(subtitle, MARGIN, y + 5, headerWidth, 22, 400, COLORS.muted)
@@ -133,7 +140,7 @@ export function measureCastawayImage({ season, castaways, gridColumns = 7, showS
       const imageHeight = cardWidth * (Number(season?.season_number) === 51 ? 1.25 : 1.05)
       operations.push({ type: "photo", index: index + column, x, y, width: cardWidth, height: imageHeight })
       if (prediction) {
-        operations.push({ type: "prediction_badge", index: index + column, rank: index + column + 1, x: x + 12, y: y + 12, width: 58, height: 58 })
+        operations.push({ type: "prediction_badge", index: index + column, rank: predictionRanks.get(castaway), x: x + 12, y: y + 12, width: 58, height: 58 })
       }
       const actualPlacement = showActualPlacements ? actualPlacementFor(castaway, actualPlacements, castaways.length) : null
       if (actualPlacement !== null) {
@@ -278,12 +285,13 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 /** Render a full cast guide independently of the page size or scroll position. */
-export async function createCastawayImage({ season, castaways, gridColumns = 7, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {}, fitLetter = false }) {
+export async function createCastawayImage({ season, castaways, gridColumns = 7, showSpoilers = false, prediction = false, authorName = "", showActualPlacements = false, actualPlacements = {}, resultOrder = false, fitLetter = false }) {
   if (typeof document === "undefined") throw new Error("Save the cast image from a web browser.")
   if (!Array.isArray(castaways) || castaways.length === 0) throw new Error("There are no castaways to save yet.")
   prediction = prediction === true
   showSpoilers = !prediction && showSpoilers === true
   showActualPlacements = prediction && showActualPlacements === true
+  resultOrder = resultOrder === true && (showSpoilers || showActualPlacements)
   const font = await headingFont()
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d", { alpha: false })
@@ -292,7 +300,7 @@ export async function createCastawayImage({ season, castaways, gridColumns = 7, 
     ctx.font = `${weight} ${size}px ${heading ? font : "Arial, sans-serif"}`
   }
   const measured = measureCastawayImage({
-    season, castaways, gridColumns, showSpoilers, prediction, authorName, showActualPlacements, actualPlacements, fitLetter,
+    season, castaways, gridColumns, showSpoilers, prediction, authorName, showActualPlacements, actualPlacements, resultOrder, fitLetter,
     measure: (text, size, weight, heading) => {
       setFont(size, weight, heading)
       return ctx.measureText(text).width
@@ -376,12 +384,13 @@ export async function createCastawayImage({ season, castaways, gridColumns = 7, 
   if (!blob) throw new Error("The cast image was too large for this browser. Try a desktop browser.")
   const seasonNumber = String(season?.season_number ?? "cast").replace(/[^a-z\d-]/gi, "")
   const columnsSuffix = `-${gridColumnCount(gridColumns)}-columns`
+  const orderSuffix = resultOrder ? "-actual-order" : ""
   const letterSuffix = measured.is_letter ? "-letter" : ""
   return {
     blob,
     filename: prediction
-      ? `survivor-${seasonNumber}-prediction-grid${showActualPlacements ? "-with-actual-placements" : ""}${columnsSuffix}${letterSuffix}.png`
-      : `survivor-${seasonNumber}-cast-grid${showSpoilers ? "-with-results" : ""}${columnsSuffix}${letterSuffix}.png`,
+      ? `survivor-${seasonNumber}-prediction-grid${showActualPlacements ? "-with-actual-placements" : ""}${columnsSuffix}${orderSuffix}${letterSuffix}.png`
+      : `survivor-${seasonNumber}-cast-grid${showSpoilers ? "-with-results" : ""}${columnsSuffix}${orderSuffix}${letterSuffix}.png`,
     width: dimensions.width,
     height: dimensions.height,
     is_letter: measured.is_letter,
