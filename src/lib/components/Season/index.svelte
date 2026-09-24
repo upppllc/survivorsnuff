@@ -41,6 +41,7 @@
       <div class="grid-options" role="group" aria-label="Grid Width">
         <Dropdown manager={manager.grid_width_dropdown_manager} />
       </div>
+      <div class="print-fit"><Checkbox manager={manager.fit_letter_checkbox_manager} /><label for={manager.fit_letter_checkbox_manager.id}>Fit to 8.5 × 11 paper</label></div>
       {#if manager.is_prediction_mode}
         <div class="author-input"><TextInput manager={manager.author_name_text_input_manager} /></div>
       {/if}
@@ -59,10 +60,12 @@
             <div class="export-actions">
               {#if manager.saved_image.share_file}<Button manager={manager.share_photo_button_manager} />{/if}
               <Button manager={manager.save_png_button_manager} />
+              <Button manager={manager.print_image_button_manager} />
             </div>
             <div class="export-close"><Button manager={manager.close_preview_button_manager} /></div>
           </div>
           {#if manager.share_error}<p class="export-error" role="alert">{manager.share_error}</p>{/if}
+          {#if manager.print_error}<p class="export-error" role="alert">{manager.print_error}</p>{/if}
           <!-- svelte-ignore a11y_no_noninteractive_tabindex (The scrollable image region needs keyboard focus for scrolling.) -->
           <div id={manager.preview_id} class="export-preview-scroll" role="region" aria-label="Scrollable cast sheet image" tabindex="0">
             <img src={manager.saved_image.url} alt={manager.saved_image.alt} width={manager.saved_image.width} height={manager.saved_image.height} class="export-preview" />
@@ -185,8 +188,8 @@
   .cast-mode { display: flex; gap: 0.56rem; }
   .prediction-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   a:focus-visible, .export-preview-scroll:focus-visible { outline: 2px solid var(--snuff-accent); outline-offset: 4px; }
-  .spoilers { display: flex; align-items: center; gap: 0.8rem; min-height: 3.4rem; font-size: 1.44rem; }
-  .spoilers label { cursor: pointer; font-size: inherit; color: var(--snuff-text); }
+  .spoilers, .print-fit { display: flex; align-items: center; gap: 0.8rem; min-height: 3.4rem; font-size: 1.44rem; }
+  .spoilers label, .print-fit label { cursor: pointer; font-size: inherit; color: var(--snuff-text); }
   .export-hint { color: var(--snuff-muted); font-size: 1.36rem; margin: 1.44rem 0 2.88rem; line-height: 1.5; }
   .placements-hint { color: var(--snuff-muted); font-size: 1.36rem; line-height: 1.5; margin: -1.6rem 0 2.88rem; }
   .export-ready { padding: 1.6rem 2rem; background: var(--snuff-surface); border: 1px solid var(--snuff-border); border-radius: 1.2rem; margin: 0 0 2.4rem; font-size: 1.52rem; }

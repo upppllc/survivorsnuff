@@ -5,6 +5,7 @@ import { page } from "$app/state"
 import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "$lib/castaways.js"
 import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
 import { prepareCastawayShareFile, shareCastawayFile } from "$lib/client/castaway-share.js"
+import { startCastawayPrint } from "$lib/client/castaway-print.js"
 import { predictionCastawayKey, orderPredictionCastaways, movePredictionCastaway, movePredictionCastawayTo } from "$lib/predictions.js"
 import { readPredictionUrl, writePredictionUrl } from "$lib/prediction-url.js"
 import { buildActualPlacements, actualPlacementFor } from "$lib/prediction-results.js"
@@ -22,6 +23,9 @@ export function create_season_manager(config) {
   let saved_image = $state(null)
   let is_sharing = $state(false)
   let share_error = $state("")
+  let is_printing = $state(false)
+  let print_error = $state("")
+  let print_job = null
   let failed_photos = $state({})
   let full_data = $state.raw(null)
   let spoilers_loading = $state(false)
@@ -49,6 +53,12 @@ export function create_season_manager(config) {
     },
   })
   const author_name = $derived(String(author_name_text_input_manager.val ?? "").trim().replace(/\s+/g, " "))
+  const fit_letter_checkbox_manager = create_checkbox_manager({
+    val: false,
+    name: "fit-letter-paper",
+    aria_label: "Fit to 8.5 × 11 paper",
+    on_change: invalidate_saved_image,
+  })
   const show_spoilers_checkbox_manager = create_checkbox_manager({
     val: false,
     name: "show-season-results",
@@ -236,6 +246,14 @@ export function create_season_manager(config) {
       preview_image_button_manager.focus()
     },
   })
+  const print_image_button_manager = create_button_manager({
+    type: "outlined",
+    text: "Print",
+    is_loading: () => is_printing,
+    is_disabled: () => !saved_image || is_printing,
+    is_compressed: true,
+    on_click: print_image,
+  })
   const grid_description = $derived(`${column_name(grid_columns)}-column grid`)
   const export_hint = $derived(is_prediction_mode
     ? "Your order is saved in this page’s URL, so you can refresh or share the link and maintain your ordering."
@@ -389,6 +407,10 @@ export function create_season_manager(config) {
     export_error = ""
     is_sharing = false
     share_error = ""
+    print_job?.cancel()
+    print_job = null
+    is_printing = false
+    print_error = ""
     if (saved_image) {
       URL.revokeObjectURL(saved_image.url)
       saved_image = null
@@ -457,6 +479,7 @@ export function create_season_manager(config) {
       season,
       castaways: [...display_castaways],
       gridColumns: grid_columns,
+      fitLetter: fit_letter_checkbox_manager.val_bool,
       authorName: is_prediction_mode ? author_name : "",
       showSpoilers: is_show_spoilers,
       showActualPlacements: is_show_actual_placements,
@@ -475,6 +498,7 @@ export function create_season_manager(config) {
           ? `My Survivor ${selection.season.season_number} prediction with ${selection.castaways.length} numbered picks, predicted winner first`
           : `Survivor ${selection.season.season_number} cast sheet with ${selection.castaways.length} castaways in a ${column_name(selection.gridColumns)}-column grid`)
           + (selection.authorName ? `. By ${selection.authorName}.` : "")
+          + (selection.fitLetter ? " Fitted to 8.5 by 11 inch paper with print margins." : "")
           + (selection.showActualPlacements ? " Actual placements shown in red (spoilers)." : ""),
         is_prediction: selection.prediction,
       }
@@ -518,6 +542,26 @@ export function create_season_manager(config) {
     link.remove()
   }
 
+  async function print_image() {
+    if (disposed || is_printing || !saved_image) return
+    const revision = export_revision
+    is_printing = true
+    print_error = ""
+    try {
+      print_job = startCastawayPrint(saved_image)
+      await print_job.finished
+    } catch {
+      if (!disposed && revision === export_revision) {
+        print_error = "The print dialog could not open. Download the PNG and choose Fit to page in your print settings."
+      }
+    } finally {
+      if (!disposed && revision === export_revision) {
+        print_job = null
+        is_printing = false
+      }
+    }
+  }
+
   function dispose() {
     disposed = true
     if (prediction_url_initialized) window.removeEventListener("popstate", after_prediction_navigation)
@@ -540,6 +584,7 @@ export function create_season_manager(config) {
     prediction_button_manager,
     reset_prediction_button_manager,
     author_name_text_input_manager,
+    fit_letter_checkbox_manager,
     show_spoilers_checkbox_manager,
     view_seasons_button_manager,
     grid_width_dropdown_manager,
@@ -547,12 +592,14 @@ export function create_season_manager(config) {
     preview_image_button_manager,
     share_photo_button_manager,
     save_png_button_manager,
+    print_image_button_manager,
     close_preview_button_manager,
     preview_id,
     get display_castaways() { return display_castaways },
     get is_generating() { return is_generating },
     get export_error() { return export_error },
     get share_error() { return share_error },
+    get print_error() { return print_error },
     get saved_image() { return saved_image },
     get export_hint() { return export_hint },
     get is_show_spoilers() { return is_show_spoilers },

@@ -390,6 +390,51 @@ test("website, photo credit, and disclaimer share one footer row without wrappin
   }
 })
 
+test("Letter exports preserve every operation and add safe padding at an exact portrait page ratio", () => {
+  const longArchive = castaways.map((person) => ({
+    ...person,
+    life_experience: "A long public retrospective profile with every experience retained. ".repeat(100),
+  }))
+  const variants = [
+    { season, castaways, prediction: true, authorName: "Zoë de León", showActualPlacements: true, actualPlacements: { [predictionCastawayKey(castaways[0])]: 18 } },
+    { season: { season_number: 20 }, castaways: longArchive, showSpoilers: true },
+  ]
+  for (const variant of variants) {
+    for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+      const options = { ...variant, gridColumns, measure }
+      const natural = measureCastawayImage(options)
+      const letter = measureCastawayImage({ ...options, fitLetter: true })
+      assert.equal(natural.is_letter, false)
+      assert.deepEqual(measureCastawayImage({ ...options, fitLetter: false }), natural)
+      assert.equal(letter.is_letter, true)
+      assert.equal(letter.width * 22, letter.height * 17)
+      assert.ok(letter.width >= natural.width && letter.height >= natural.height)
+      const offsetX = (letter.width - natural.width) / 2
+      const offsetY = (letter.height - natural.height) / 2
+      assert.ok(offsetX >= letter.width / 34, "at least 0.25 inch horizontal print margin")
+      assert.ok(offsetY >= letter.height / 44, "at least 0.25 inch vertical print margin")
+      assert.deepEqual(letter.orderedCastaways, natural.orderedCastaways)
+      assert.equal(letter.operations.length, natural.operations.length)
+      for (const [index, operation] of letter.operations.entries()) {
+        const { x, y, ...content } = operation
+        const { x: originalX, y: originalY, ...originalContent } = natural.operations[index]
+        assert.deepEqual(content, originalContent, "text, fonts, photos, badges, and geometry are unchanged")
+        assert.ok(Math.abs(x - originalX - offsetX) < 0.000001)
+        assert.ok(Math.abs(y - originalY - offsetY) < 0.000001)
+        const operationHeight = operation.type === "text" ? operation.lines.length * operation.lineHeight : operation.height
+        assert.ok(x >= offsetX && x + operation.width <= letter.width - offsetX + 0.001)
+        assert.ok(y >= offsetY && y + operationHeight <= letter.height - offsetY + 0.001)
+      }
+      const dimensions = castawayCanvasSize(letter.width, letter.height, true)
+      assert.equal(dimensions.width * 22, dimensions.height * 17)
+      assert.ok(dimensions.width * dimensions.height <= 16_000_000)
+      assert.ok(dimensions.width <= 16_384 && dimensions.height <= 16_384)
+      assert.ok(dimensions.scale <= 1.5)
+      assert.ok(Math.abs(dimensions.width / letter.width - dimensions.height / letter.height) < 0.000001, "canvas scaling stays uniform")
+    }
+  }
+})
+
 test("canvas dimensions stay within the pixel and browser dimension budgets for long exports", () => {
   for (const height of [3000, 8000, 16000, 48000, 100000]) {
     const dimensions = castawayCanvasSize(1440, height)

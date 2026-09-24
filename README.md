@@ -106,7 +106,16 @@ share sheet keeps the preview open and does not start a download. If file
 sharing is unavailable, touch and hold the preview image for photo options.
 **Download PNG** remains available to save a file in any browser.
 
-The preview stays fitted to the available width, with save/share, download, and
+Enable **Fit to 8.5 × 11 paper** before previewing to add background margins for
+portrait US Letter paper. This keeps every photo and line of text without cropping
+or stretching; the saved PNG and shared photo have the same paper proportions.
+The normal image keeps its natural height, with compact spacing around names,
+rows, the header, and footer. Changing the paper option clears the old preview.
+**Print** in the preview opens the browser's print dialog for just the image,
+fitted to one Letter page with margins. Choose the matching paper size in your
+printer settings; printing is never started automatically.
+
+The preview stays fitted to the available width, with save/share, download, Print, and
 an outlined **Close preview** button at the top right. Generating a preview does
 not download anything. You can
 choose **3 through 8 across** in **Grid Width** (**7 across** is the default) for the saved image,
