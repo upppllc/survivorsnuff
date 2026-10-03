@@ -1,6 +1,6 @@
 <script>
-  import Home from "$lib/components/Home/index.svelte"
-  import { create_home_manager } from "$lib/components/Home/index.svelte.js"
+  import Home from "#lib/components/Home/index.svelte"
+  import { create_home_manager } from "#lib/components/Home/index.svelte.js"
 
   let { data } = $props()
   let manager = $derived(create_home_manager(data))

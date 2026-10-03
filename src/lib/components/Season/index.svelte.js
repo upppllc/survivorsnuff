@@ -1,14 +1,38 @@
-import { create_button_manager, create_checkbox_manager, create_dropdown_manager, create_text_input_manager } from "sveltekit-ui"
-import { tick, untrack } from "svelte"
-import { replaceState } from "$app/navigation"
-import { page } from "$app/state"
-import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "$lib/castaways.js"
-import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
-import { prepareCastawayShareFile, shareCastawayFile } from "$lib/client/castaway-share.js"
-import { startCastawayPrint } from "$lib/client/castaway-print.js"
-import { predictionCastawayKey, orderPredictionCastaways, movePredictionCastaway, movePredictionCastawayTo } from "$lib/predictions.js"
-import { readPredictionUrl, writePredictionUrl } from "$lib/prediction-url.js"
-import { buildActualPlacements, actualPlacementFor, sortCastawaysByActualPlacement } from "$lib/prediction-results.js"
+import {
+  create_button_manager,
+  create_checkbox_manager,
+  create_dropdown_manager,
+  create_text_input_manager
+} from "sveltekit-ui";
+
+import { tick, untrack } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
+
+import {
+  castawayImageSrc,
+  castawayProfileDetails,
+  sortCastawaysAlphabetically
+} from "#lib/castaways.js";
+
+import { formatSeasonDate, seasonDateTimestamp } from "#lib/season-dates.js";
+import { prepareCastawayShareFile, shareCastawayFile } from "#lib/client/castaway-share.js";
+import { startCastawayPrint } from "#lib/client/castaway-print.js";
+
+import {
+  predictionCastawayKey,
+  orderPredictionCastaways,
+  movePredictionCastaway,
+  movePredictionCastawayTo
+} from "#lib/predictions.js";
+
+import { readPredictionUrl, writePredictionUrl } from "#lib/prediction-url.js";
+
+import {
+  buildActualPlacements,
+  actualPlacementFor,
+  sortCastawaysByActualPlacement
+} from "#lib/prediction-results.js";
 
 export function create_season_manager(config) {
   let grid_columns = $state(7)
@@ -286,9 +310,14 @@ export function create_season_manager(config) {
     ? "Your order is saved in this page’s URL, so you can refresh or share the link and maintain your ordering."
     : `${is_result_order ? "Castaways are listed by actual finishing order." : "Castaways are listed alphabetically by name."} Preview the ${grid_description} with full profiles, then save it as a PNG.`)
   const results_hint = $derived([
-    is_show_actual_placements ? "Red numbers show actual finishing places recorded so far. Unrecorded places stay blank." : "",
-    is_result_order ? "Castaways without a recorded finish appear alphabetically first, then recorded places from best to last." : "",
-  ].filter(Boolean).join(" "))
+    is_show_actual_placements
+      ? "Red numbers show actual finishing places recorded so far. Unrecorded places stay blank."
+      : "",
+
+    is_result_order
+      ? "Castaways without a recorded finish appear alphabetically first, then recorded places from best to last."
+      : ""
+  ].filter(Boolean).join(" "));
 
   function get_prediction_controls(person) {
     const key = predictionCastawayKey(person)
@@ -429,7 +458,11 @@ export function create_season_manager(config) {
     const next = writePredictionUrl(window.location.href, config?.season?.season_number, config?.castaways ?? [], is_prediction_mode ? prediction_order : null, author_name)
     if (next.href !== window.location.href) {
       // Keep SvelteKit's router state and any unrelated page state intact.
-      replaceState(next, untrack(() => page.state))
+      goto(next, {
+        shallow: true,
+        replace: true,
+        state: untrack(() => page.state)
+      });
     }
   }
 
@@ -518,7 +551,9 @@ export function create_season_manager(config) {
       season,
       // The exporter needs the original picks to keep white badges stable when
       // the display is sorted by actual finish instead of the user's ranking.
-      castaways: [...(is_prediction_mode ? ordered_prediction_castaways : castaways_prepped)],
+      castaways: [
+        ...is_prediction_mode ? ordered_prediction_castaways : castaways_prepped
+      ],
       gridColumns: grid_columns,
       fitLetter: fit_letter_checkbox_manager.val_bool,
       authorName: is_prediction_mode ? author_name : "",
@@ -529,7 +564,7 @@ export function create_season_manager(config) {
       resultOrder: is_result_order,
     }
     try {
-      const { createCastawayImage } = await import("$lib/client/castaway-export.js")
+      const { createCastawayImage } = await import("#lib/client/castaway-export.js")
       const result = await createCastawayImage(selection)
       if (disposed || revision !== export_revision) return
       saved_image = {

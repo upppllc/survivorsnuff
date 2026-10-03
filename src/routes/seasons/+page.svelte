@@ -1,6 +1,6 @@
 <script>
-  import Seasons from "$lib/components/Seasons/index.svelte"
-  import { create_seasons_manager } from "$lib/components/Seasons/index.svelte.js"
+  import Seasons from "#lib/components/Seasons/index.svelte"
+  import { create_seasons_manager } from "#lib/components/Seasons/index.svelte.js"
   let { data } = $props()
   const manager = create_seasons_manager({ seasons: () => data.seasons })
 </script>

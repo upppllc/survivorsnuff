@@ -1,5 +1,5 @@
 import { create_button_manager, create_icon_manager } from "sveltekit-ui"
-import { formatSeasonDate, seasonDateTimestamp } from "$lib/season-dates.js"
+import { formatSeasonDate, seasonDateTimestamp } from "#lib/season-dates.js"
 
 export function create_seasons_manager(config) {
   const seasons = $derived.by(() => {

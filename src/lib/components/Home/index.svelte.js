@@ -1,5 +1,5 @@
 import { create_button_manager } from "sveltekit-ui"
-import { create_season_manager } from "$lib/components/Season/index.svelte.js"
+import { create_season_manager } from "#lib/components/Season/index.svelte.js"
 
 export function create_home_manager(config) {
   const season_manager = create_season_manager(config)

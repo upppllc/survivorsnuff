@@ -3,10 +3,11 @@ import {
   create_qr_manager,
   create_content_manager,
   create_icon_manager,
-  copy_to_clipboard,
-} from "sveltekit-ui"
-import { page } from "$app/state"
-import { PUBLIC_APPLE_MAPKIT_JS_API_KEY } from "$env/static/public"
+  copy_to_clipboard
+} from "sveltekit-ui";
+
+import { page } from "$app/state";
+import { PUBLIC_APPLE_MAPKIT_JS_API_KEY } from "$app/env/public";
 
 export function create_post_manager(config) {
   const storage_path = "/api/storage/{storage_id}"

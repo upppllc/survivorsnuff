@@ -1,6 +1,6 @@
 import { onDestroy } from "svelte"
 import { create_button_manager, create_time_manager } from "sveltekit-ui"
-import { create_post_manager } from "$lib/components/Post/index.svelte.js"
+import { create_post_manager } from "#lib/components/Post/index.svelte.js"
 
 export function create_episode_manager(config) {
   const initialData = $derived(typeof config?.data === "function" ? config.data() : config?.data)

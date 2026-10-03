@@ -1,6 +1,6 @@
 <script>
   import { Button, Time } from "sveltekit-ui"
-  import Post from "$lib/components/Post/index.svelte"
+  import Post from "#lib/components/Post/index.svelte"
 
   let { manager } = $props()
   const data = $derived(manager.data)

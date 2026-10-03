@@ -1,5 +1,5 @@
 import { create_layout_manager, create_button_manager } from "sveltekit-ui"
-import { create_main_nav_manager } from "$lib/components/MainNav/index.svelte.js"
+import { create_main_nav_manager } from "#lib/components/MainNav/index.svelte.js"
 
 export function create_global_manager() {
   const layout_manager = create_layout_manager({

@@ -1,5 +1,5 @@
-import { error } from "@sveltejs/kit"
-import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_USERS_TABLE_ID } from "$env/static/private"
+import { error } from "@sveltejs/kit";
+import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_USERS_TABLE_ID } from "$app/env/private";
 
 export async function load({ fetch, params }) {
   console.log("update_user_confirm_email_address_epoch")

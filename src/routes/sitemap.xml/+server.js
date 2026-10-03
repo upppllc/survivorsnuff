@@ -1,4 +1,4 @@
-import { getSeasons, readTable } from "$lib/server/seasons"
+import { getSeasons, readTable } from "#lib/server/seasons.js"
 
 export async function GET({ fetch }) {
   const base = "https://www.survivorsnuff.com"

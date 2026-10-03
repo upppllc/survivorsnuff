@@ -3,8 +3,14 @@
   import { untrack } from "svelte"
   import { afterNavigate } from "$app/navigation"
 
-  let { manager, featured = false } = $props()
-  afterNavigate(() => manager.after_prediction_navigation())
+  let { manager, featured = false } = $props();
+
+  afterNavigate(({ shallow }) => {
+    if (shallow) return;
+
+    return manager.after_prediction_navigation();
+  });
+
   $effect(() => {
     const active_manager = manager
     untrack(() => active_manager.initialize_prediction_url())
@@ -38,10 +44,18 @@
         <Button manager={manager.cast_guide_button_manager} />
         <Button manager={manager.prediction_button_manager} />
       </div>
-      <div class="grid-options" role="group" aria-label="Grid Width">
-        <Dropdown manager={manager.grid_width_dropdown_manager} />
+
+      <div
+        class="grid-options"
+        role="group"
+        aria-label="Grid Width"
+      ><Dropdown manager={manager.grid_width_dropdown_manager} /></div>
+
+      <div class="print-fit">
+        <Checkbox manager={manager.fit_letter_checkbox_manager} />
+        <label for={manager.fit_letter_checkbox_manager.id}>Fit to 8.5 × 11 paper</label>
       </div>
-      <div class="print-fit"><Checkbox manager={manager.fit_letter_checkbox_manager} /><label for={manager.fit_letter_checkbox_manager.id}>Fit to 8.5 × 11 paper</label></div>
+
       {#if manager.is_prediction_mode}
         <div class="author-input"><TextInput manager={manager.author_name_text_input_manager} /></div>
       {/if}

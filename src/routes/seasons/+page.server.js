@@ -1,5 +1,5 @@
-import { getSeasons } from "$lib/server/seasons"
-import { publicSeasonDate } from "$lib/season-public-data.js"
+import { getSeasons } from "#lib/server/seasons.js"
+import { publicSeasonDate } from "#lib/season-public-data.js"
 
 export async function load({ fetch }) {
   const seasons = await getSeasons(fetch)

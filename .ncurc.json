@@ -1,0 +1,5 @@
+{
+  "peer": true,
+  "enginesNode": true,
+  "reject": "@vercel/analytics"
+}

@@ -1,5 +1,5 @@
-import { error, json } from "@sveltejs/kit"
-import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_USERS_TABLE_ID } from "$env/static/private"
+import { error } from "@sveltejs/kit"
+import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_USERS_TABLE_ID } from "$app/env/private";
 
 export async function POST({ request, fetch }) {
   console.log("start add user")
@@ -20,14 +20,13 @@ export async function POST({ request, fetch }) {
   const check_if_email_address_already_used_res = await fetch(
     `https://www.contibase.com/api/v1/tables/${CONTIBASE_USERS_TABLE_ID}?${params.toString()}`,
     {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
-      },
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`
     }
-  )
-  const check_if_email_address_already_used_res_body = await check_if_email_address_already_used_res.json()
+  });
+  const check_if_email_address_already_used_res_body = await check_if_email_address_already_used_res.json();
   if (!check_if_email_address_already_used_res.ok) {
     return error(
       400,
@@ -47,17 +46,13 @@ export async function POST({ request, fetch }) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({
-      row_data: {
-        first_name: first_name,
-        email_address: email_address,
-        tags: ["all"],
-      },
-    }),
-  })
-  const create_user_res_body = await create_user_res.json()
+    body: JSON.stringify({ row_data: { first_name, email_address, tags: ["all"] } })
+  });
+
+  const create_user_res_body = await create_user_res.json();
+
   if (!create_user_res.ok) {
     error(400, create_user_res?.message || "Error adding user")
   }
-  return json(create_user_res_body)
+  return Response.json(create_user_res_body)
 }

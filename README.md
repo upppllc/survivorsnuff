@@ -201,3 +201,9 @@ Contibase storage proxy for the page and PNG exports. A failed photo
 produces an error so the downloaded guide does not silently omit a castaway's
 picture. The generated PNG remains available until the preview is closed or
 its settings change.
+
+## Runtime and dependency verification
+
+Use Node.js 24 (`nvm use`) and normal `npm install`. Run `npm run verify` before releasing. The app uses SvelteKit 3, Vercel's Node.js 24 runtime, and TypeScript 6.
+
+`npm-check-updates` follows `.ncurc.json`: it respects peer dependencies and Node requirements. TypeScript 7 is held because the current SvelteKit and checker support TypeScript 6. Vercel Analytics stays at the generic, Kit 3 compatible version 1.3.2 while a compatible newer release is reviewed. Analytics uses explicit public-page navigation tracking and strips query strings and private routes.

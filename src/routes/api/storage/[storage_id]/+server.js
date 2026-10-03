@@ -1,14 +1,14 @@
-import { error } from "@sveltejs/kit"
-import { env } from "$env/dynamic/private"
+import { error } from "@sveltejs/kit";
+import { CONTIBASE_ACCESS_TOKEN } from "$app/env/private";
 
 export async function GET({ params, fetch }) {
-  if (!/^[a-zA-Z0-9_.-]+$/.test(params.storage_id ?? "")) error(400, "Invalid image")
-  let response
+  if (!(/^[a-zA-Z0-9_.-]+$/).test(params.storage_id ?? "")) error(400, "Invalid image");
+  let response;
   try {
     response = await fetch(`https://www.contibase.com/api/v1/storage/${encodeURIComponent(params.storage_id)}`, {
-      headers: { Authorization: `Bearer ${env.CONTIBASE_ACCESS_TOKEN}` },
-      signal: AbortSignal.timeout(15000),
-    })
+      headers: { Authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}` },
+      signal: AbortSignal.timeout(15000)
+    });
   } catch {
     error(503, "The photo is temporarily unavailable")
   }

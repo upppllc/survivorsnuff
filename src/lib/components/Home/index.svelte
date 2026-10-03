@@ -1,6 +1,6 @@
 <script>
   import { Button } from "sveltekit-ui"
-  import Season from "$lib/components/Season/index.svelte"
+  import Season from "#lib/components/Season/index.svelte"
 
   let { manager } = $props()
 </script>

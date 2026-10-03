@@ -1,18 +1,22 @@
-import { env } from "$env/dynamic/private"
+import { CONTIBASE_ACCESS_TOKEN, CONTIBASE_SEASONS_TABLE_ID, CONTIBASE_EPISODES_TABLE_ID, CONTIBASE_CASTAWAYS_TABLE_ID } from "$app/env/private"
 import { error } from "@sveltejs/kit"
-import currentSeason from "$lib/data/season-51.js"
+import currentSeason from "#lib/data/season-51.js"
 import { applyAiredResults } from "./season-aired-results.js"
 
 export const LATEST_SEASON = 51
 
 export async function readTable(fetch, table, filters) {
-  const id = env[`CONTIBASE_${table.toUpperCase()}_TABLE_ID`]
-  if (!id || !env.CONTIBASE_ACCESS_TOKEN) return null
-  const query = new URLSearchParams({ limit: "9000" })
-  if (filters) query.set("filters", JSON.stringify(filters))
+  const id = { seasons: CONTIBASE_SEASONS_TABLE_ID, episodes: CONTIBASE_EPISODES_TABLE_ID, castaways: CONTIBASE_CASTAWAYS_TABLE_ID }[table]
+
+  if (!id || !CONTIBASE_ACCESS_TOKEN) return null;
+
+  const query = new URLSearchParams({ limit: "9000" });
+
+  if (filters) query.set("filters", JSON.stringify(filters));
+
   try {
     const response = await fetch(`https://www.contibase.com/api/v1/tables/${id}?${query}`, {
-      headers: { authorization: `Bearer ${env.CONTIBASE_ACCESS_TOKEN}` },
+      headers: { authorization: `Bearer ${CONTIBASE_ACCESS_TOKEN}` },
       signal: AbortSignal.timeout(12000),
     })
     if (!response.ok) return null
