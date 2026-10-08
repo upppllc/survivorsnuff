@@ -51,10 +51,23 @@ test("explicit spoiler POST retains private caching and default episode load rem
   let requests = 0
   const loadEpisode = vm.runInNewContext(episodeSource + "\nloadEpisode", {
     CONTIBASE_ACCESS_TOKEN: "synthetic", error: fail,
-    getSeason: async () => ({ season: { season_number: 51, winner: "synthetic secret" }, episodes: [{ season_number: 51, episode_number: 2, title: "synthetic secret", post_id: "synthetic secret", air_time: "2026-09-30" }] }),
+    getSeason: async () => ({
+      season: { season_number: 51, winner: "synthetic secret" },
+      castaways: [{ name: "synthetic secret", result_order: 19, departure_reason: "quit" }],
+      episodes: [{
+        season_number: 51, episode_number: 2, title: "synthetic secret", post_id: "synthetic secret", air_time: "2026-09-30",
+        eliminated_players: ["synthetic secret"], departure_reason: "quit",
+        departures: [{ name: "synthetic secret", departure_reason: "quit" }],
+      }],
+    }),
     publicSeasonDate: (date) => date,
   })
   const data = await loadEpisode(() => { requests++; throw new Error("unexpected fetch") }, { season_number: "51", episode_number: "2" })
   assert.equal(requests, 0)
   assert.ok(!JSON.stringify(data).includes("synthetic secret"))
+  assert.ok(!JSON.stringify(data).includes('"quit"'))
+  assert.deepEqual(JSON.parse(JSON.stringify(data)), {
+    season: { season_number: 51 },
+    episode: { season_number: 51, episode_number: 2, air_time: "2026-09-30" },
+  })
 })

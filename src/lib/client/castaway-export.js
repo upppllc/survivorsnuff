@@ -1,4 +1,4 @@
-import { castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "../castaways.js"
+import { castawayDepartureLabel, castawayImageSrc, castawayProfileDetails, sortCastawaysAlphabetically } from "../castaways.js"
 import { actualPlacementFor, buildActualPlacements, sortCastawaysByActualPlacement } from "../prediction-results.js"
 
 const WIDTH = 1440
@@ -75,7 +75,8 @@ function fieldsFor(castaway, showSpoilers) {
   for (const bio of profile.bios) add(labels[bio.key], bio.value)
   add("Tribe", profile.tribe)
   if (showSpoilers && Number.isInteger(castaway.result_order)) {
-    add("Finish", `${castaway.result_order}${castaway.is_on_jury ? " · Jury member" : ""}`)
+    const departure = castawayDepartureLabel(castaway, showSpoilers)
+    add("Finish", [castaway.result_order, departure, castaway.is_on_jury ? "Jury member" : ""].filter((value) => value !== "").join(" · "))
   }
   return fields
 }

@@ -20,7 +20,8 @@ test("default serialized data contains no season results, cast narratives, or ep
       current_residence: "New York", image_url: `/castaways/${name}.jpg`, image_storage_id: name,
       photo_source_url: "https://example.com/photo", photo_credit: "CBS", image_credit: "CBS",
       source_url: "https://example.com/cast", age_basis: "Cast announcement",
-      result_order: index + 1, is_on_jury: true, tribe: { name: spoiler }, tribe_name: spoiler,
+      result_order: index + 1, departure_reason: index === 0 ? "quit" : "medical_evacuation",
+      departure_details: spoiler, is_on_jury: true, tribe: { name: spoiler }, tribe_name: spoiler,
       summary: spoiler, bio: spoiler, traits: [spoiler], why_applied: spoiler,
       life_experience: spoiler, unique_gameplay: spoiler, profile_spoiler_free: true,
       unknown_future_field: spoiler,
@@ -28,7 +29,8 @@ test("default serialized data contains no season results, cast narratives, or ep
     episodes: [{
       id: spoiler, season_number: 51, episode_number: 1, air_time: { ...schedule, content: spoiler },
       title: spoiler, synopsis: spoiler, post_id: spoiler, votes: [{ voter: spoiler }],
-      eliminated_players: [spoiler], joined_jury: [spoiler], related_urls: [{ url: spoiler }],
+      eliminated_players: [spoiler], departures: [{ name: spoiler, departure_reason: "quit" }],
+      departure_reason: "quit", joined_jury: [spoiler], related_urls: [{ url: spoiler }],
     }],
     post: spoiler,
   })
@@ -41,6 +43,10 @@ test("default serialized data contains no season results, cast narratives, or ep
   assert.equal(result.castaways[0].image_url, "/castaways/Amy.jpg")
   assert.deepEqual(result.episodes, [{ season_number: 51, episode_number: 1, air_time: schedule }])
   assert.ok(!("result_order" in result.castaways[0]))
+  assert.ok(!("departure_reason" in result.castaways[0]))
+  assert.ok(!("departure_details" in result.castaways[0]))
+  assert.ok(!JSON.stringify(result).includes("medical_evacuation"))
+  assert.ok(!JSON.stringify(result).includes('"quit"'))
   assert.ok(!("is_on_jury" in result.castaways[0]))
   assert.ok(!("profile_spoiler_free" in result.castaways[0]))
 })

@@ -18,6 +18,7 @@ const castaways = Array.from({ length: 18 }, (_, index) => ({
   unique_gameplay: "Build strong relationships and keep my options open.",
   summary: "An enthusiastic new castaway.",
   result_order: index + 1,
+  departure_reason: ["voted_out", "quit", "medical_evacuation"][index % 3],
   is_on_jury: true,
 }))
 
@@ -189,9 +190,38 @@ test("results are omitted unless explicitly requested with each column count", (
     const withResults = measureCastawayImage({ season, castaways, gridColumns, measure, showSpoilers: true })
     const textWithout = without.operations.flatMap((operation) => operation.lines ?? []).join(" ")
     const textWith = withResults.operations.flatMap((operation) => operation.lines ?? []).join(" ")
-    assert.doesNotMatch(textWithout, /Jury member|INCLUDES SEASON RESULTS/i)
+    assert.doesNotMatch(textWithout, /Jury member|INCLUDES SEASON RESULTS|Voted out|Quit|Medical evacuation/i)
     assert.match(textWith, /Jury member/)
     assert.match(textWith, /INCLUDES SEASON RESULTS/)
+  }
+})
+
+test("revealed cast guides label verified departures in every grid and Letter mode", () => {
+  const people = [
+    { name: "Ana", result_order: 19, departure_reason: "quit" },
+    { name: "Beth", result_order: 18, departure_reason: "medical_evacuation" },
+    { name: "Carla", result_order: 21, departure_reason: "voted_out", is_on_jury: true },
+    { name: "David", result_order: 20, departure_reason: "SECRET_DEPARTURE" },
+    { name: "Zoë", result_order: 1, departure_reason: "quit" },
+  ]
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const fitLetter of [false, true]) {
+      const options = { season, castaways: people, gridColumns, fitLetter, measure }
+      const hidden = measureCastawayImage(options)
+      const hiddenText = hidden.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+      assert.doesNotMatch(hiddenText, /Finish:|Quit|Medical evacuation|Voted out|SECRET_DEPARTURE/)
+      const revealed = measureCastawayImage({ ...options, showSpoilers: true })
+      const finishes = revealed.operations.filter((operation) => operation.type === "text" && operation.lines[0].startsWith("Finish:"))
+      assert.deepEqual(finishes.map((operation) => operation.lines.join(" ")), [
+        "Finish: 19 · Quit",
+        "Finish: 18 · Medical evacuation",
+        "Finish: 21 · Voted out · Jury member",
+        "Finish: 20",
+        "Finish: 1",
+      ])
+      assert.doesNotMatch(revealed.operations.flatMap((operation) => operation.lines ?? []).join(" "), /SECRET_DEPARTURE/)
+      if (fitLetter) assert.equal(revealed.width * 22, revealed.height * 17)
+    }
   }
 })
 
@@ -217,7 +247,7 @@ test("outcome-ordered input is alphabetized without changing names or photo asso
   }
 })
 
-test("spoiler-free exports are identical when results, narratives, tribe assignments, and input order change", () => {
+test("spoiler-free exports are identical when results, departure reasons, narratives, tribes, and order change", () => {
   const people = [
     { name: "Ana Example", age: 32, occupation: "Teacher", hometown: "Boston", image_url: "/cast/ana.jpg" },
     { name: "Zoë Example", age: 27, occupation: "Chef", hometown: "Austin", image_url: "/cast/zoe.jpg" },
@@ -225,6 +255,7 @@ test("spoiler-free exports are identical when results, narratives, tribe assignm
   const withOutcomes = people.map((person, index) => ({
     ...person,
     result_order: index + 1,
+    departure_reason: ["quit", "medical_evacuation"][index],
     is_on_jury: true,
     tribe: "Merged Tribe",
     traits: ["Sole Survivor"],
@@ -236,16 +267,18 @@ test("spoiler-free exports are identical when results, narratives, tribe assignm
     profile_spoiler_free: true,
   })).reverse()
   for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
-    const before = measureCastawayImage({ season, castaways: people, gridColumns, measure })
-    const after = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, measure })
-    assert.deepEqual(after.operations, before.operations)
-    assert.deepEqual(after.cards, before.cards)
-    assert.equal(after.height, before.height)
-    const revealed = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, measure, showSpoilers: true })
-    const revealedText = revealed.operations.flatMap((operation) => operation.lines ?? []).join(" ")
-    assert.match(revealedText, /Merged Tribe/)
-    assert.match(revealedText, /Jury member/)
-    assert.match(revealedText, /Won the final vote/)
+    for (const fitLetter of [false, true]) {
+      const before = measureCastawayImage({ season, castaways: people, gridColumns, fitLetter, measure })
+      const after = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, fitLetter, measure })
+      assert.deepEqual(after.operations, before.operations)
+      assert.deepEqual(after.cards, before.cards)
+      assert.equal(after.height, before.height)
+      const revealed = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, fitLetter, measure, showSpoilers: true })
+      const revealedText = revealed.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+      assert.match(revealedText, /Merged Tribe/)
+      assert.match(revealedText, /Jury member/)
+      assert.match(revealedText, /Won the final vote/)
+    }
   }
 })
 
@@ -291,6 +324,7 @@ test("prediction exports suppress real results and retrospective narratives even
   const withOutcomes = people.map((person, index) => ({
     ...person,
     result_order: people.length - index,
+    departure_reason: ["quit", "medical_evacuation"][index],
     is_on_jury: true,
     tribe: "Merged Tribe",
     traits: ["Sole Survivor"],
@@ -302,14 +336,16 @@ test("prediction exports suppress real results and retrospective narratives even
     profile_spoiler_free: true,
   }))
   for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
-    const before = measureCastawayImage({ season, castaways: people, gridColumns, prediction: true, measure })
-    const after = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, prediction: true, showSpoilers: true, measure })
-    assert.deepEqual(after.operations, before.operations)
-    assert.deepEqual(after.cards, before.cards)
-    assert.equal(after.height, before.height)
-    const renderedText = after.operations.flatMap((operation) => operation.lines ?? []).join(" ")
-    assert.doesNotMatch(renderedText, /Merged Tribe|Sole Survivor|Jury member|final vote|finale|unverified retrospective|previous season|decisive idol|INCLUDES SEASON RESULTS/i)
-    assert.deepEqual(after.operations.filter((operation) => operation.type === "prediction_badge").map((badge) => badge.rank), [1, 2])
+    for (const fitLetter of [false, true]) {
+      const before = measureCastawayImage({ season, castaways: people, gridColumns, fitLetter, prediction: true, measure })
+      const after = measureCastawayImage({ season, castaways: withOutcomes, gridColumns, fitLetter, prediction: true, showSpoilers: true, measure })
+      assert.deepEqual(after.operations, before.operations)
+      assert.deepEqual(after.cards, before.cards)
+      assert.equal(after.height, before.height)
+      const renderedText = after.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+      assert.doesNotMatch(renderedText, /Merged Tribe|Sole Survivor|Jury member|final vote|finale|unverified retrospective|previous season|decisive idol|INCLUDES SEASON RESULTS|Quit|Medical evacuation|Voted out/i)
+      assert.deepEqual(after.operations.filter((operation) => operation.type === "prediction_badge").map((badge) => badge.rank), [1, 2])
+    }
   }
 })
 
@@ -327,11 +363,40 @@ test("actual placement maps cannot change an export without the separate predict
   }
 })
 
+test("prediction placement overlays suppress departures in every grid and Letter mode", () => {
+  const people = [
+    { id: "zoe", name: "Zoë", result_order: 21 },
+    { id: "ana", name: "Ana", result_order: 20 },
+    { id: "beth", name: "Beth", result_order: 19 },
+  ]
+  const withDepartures = people.map((person, index) => ({
+    ...person,
+    departure_reason: ["voted_out", "quit", "medical_evacuation"][index],
+  }))
+  const actualPlacements = Object.fromEntries(people.map((person, index) => [predictionCastawayKey(person), people.length - index]))
+  for (const gridColumns of [3, 4, 5, 6, 7, 8]) {
+    for (const fitLetter of [false, true]) {
+      for (const resultOrder of [false, true]) {
+        const options = { season, gridColumns, fitLetter, resultOrder, prediction: true, showSpoilers: true, showActualPlacements: true, actualPlacements, measure }
+        const before = measureCastawayImage({ ...options, castaways: people })
+        const after = measureCastawayImage({ ...options, castaways: withDepartures })
+        assert.deepEqual(after.operations, before.operations)
+        assert.deepEqual(after.cards, before.cards)
+        assert.equal(after.height, before.height)
+        assert.equal(after.operations.filter((operation) => operation.type === "actual_placement_badge").length, people.length)
+        const renderedText = after.operations.flatMap((operation) => operation.lines ?? []).join(" ")
+        assert.doesNotMatch(renderedText, /Finish:|Quit|Medical evacuation|Voted out/)
+      }
+    }
+  }
+})
+
 test("explicit actual placements add separate red badges without changing picks or revealing narratives", () => {
   const people = Array.from({ length: 21 }, (_, index) => ({
     id: `person-${index}`,
     name: `Castaway ${21 - index}`,
     result_order: index + 1,
+    departure_reason: ["voted_out", "quit", "medical_evacuation"][index % 3],
     is_on_jury: true,
     tribe: "SECRET_TRIBE",
     traits: ["SECRET_TRAIT"],
@@ -364,7 +429,7 @@ test("explicit actual placements add separate red badges without changing picks 
     const renderedText = result.operations.flatMap((operation) => operation.lines ?? []).join(" ")
     assert.match(renderedText, /Actual placements shown \(spoilers\)/)
     assert.match(renderedText, /White = your pick · Red = actual finish/)
-    assert.doesNotMatch(renderedText, /SECRET_|Finish:|Jury member|INCLUDES SEASON RESULTS/)
+    assert.doesNotMatch(renderedText, /SECRET_|Finish:|Jury member|INCLUDES SEASON RESULTS|Quit|Medical evacuation|Voted out/)
   }
 })
 
@@ -374,6 +439,7 @@ test("actual-order prediction images keep original pick ranks and photo identiti
     name: `Castaway ${21 - index}`,
     image_url: `/cast/prediction-${index}.webp`,
     result_order: index + 1,
+    departure_reason: ["voted_out", "quit", "medical_evacuation"][index % 3],
     summary: "SECRET_NARRATIVE",
   }))
   const actualPlacements = {
@@ -405,7 +471,7 @@ test("actual-order prediction images keep original pick ranks and photo identiti
       }
       const renderedText = result.operations.flatMap((operation) => operation.lines ?? []).join(" ")
       assert.match(renderedText, /Actual finishing order · White numbers = your prediction/)
-      assert.doesNotMatch(renderedText, /Alphabetical by name|1 = predicted winner|SECRET_NARRATIVE|Finish:/)
+      assert.doesNotMatch(renderedText, /Alphabetical by name|1 = predicted winner|SECRET_NARRATIVE|Finish:|Quit|Medical evacuation|Voted out/)
       if (fitLetter) assert.equal(result.width * 22, result.height * 17)
     }
   }

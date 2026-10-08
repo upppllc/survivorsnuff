@@ -1,6 +1,17 @@
 import { season51Profiles } from "./data/season-51-profiles.js"
 
 const nameOrder = new Intl.Collator("en", { sensitivity: "base", numeric: true })
+const departureLabels = new Map([
+  ["voted_out", "Voted out"],
+  ["quit", "Quit"],
+  ["medical_evacuation", "Medical evacuation"],
+])
+
+/** Departure reasons are outcomes and need the same explicit spoiler opt-in. */
+export function castawayDepartureLabel(castaway, showSpoilers = false) {
+  if (showSpoilers !== true || !Number.isInteger(castaway?.result_order) || castaway.result_order <= 1) return ""
+  return departureLabels.get(castaway?.departure_reason) ?? ""
+}
 
 /** A neutral cast order that never depends on placement, survival, or jury status. */
 export function sortCastawaysAlphabetically(castaways = []) {

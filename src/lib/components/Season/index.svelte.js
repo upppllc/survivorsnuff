@@ -11,6 +11,7 @@ import { page } from "$app/state";
 
 import {
   castawayImageSrc,
+  castawayDepartureLabel,
   castawayProfileDetails,
   sortCastawaysAlphabetically
 } from "#lib/castaways.js";
@@ -114,8 +115,12 @@ export function create_season_manager(config) {
       image_src: castawayImageSrc(person, season.season_number),
       initials: String(person.name ?? "").split(" ").map((part) => part[0]).slice(0, 2).join(""),
       age_label: `Age ${person.age}`,
-      result_label: Number.isInteger(person.result_order)
-        ? `${person.result_order === 1 ? "Winner" : `Finished #${person.result_order}`}${person.is_on_jury ? " · Jury" : ""}`
+      result_label: is_show_spoilers && Number.isInteger(person.result_order)
+        ? [
+          person.result_order === 1 ? "Winner" : `Finished #${person.result_order}`,
+          castawayDepartureLabel(person, is_show_spoilers),
+          person.is_on_jury ? "Jury" : "",
+        ].filter(Boolean).join(" · ")
         : "",
       facts: [
         { label: "Hometown", value: person.hometown },
