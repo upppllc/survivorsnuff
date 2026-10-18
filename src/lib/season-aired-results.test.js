@@ -9,9 +9,10 @@ const reviewedResults = [
   { name: "Ana Sani", result_order: 20, departure_reason: "voted_out" },
   { name: "Rob Antonson", result_order: 19, departure_reason: "quit" },
   { name: "Patt Cannaday", result_order: 18, departure_reason: "voted_out" },
+  { name: "Jenna Doore", result_order: 17, departure_reason: "voted_out" },
 ]
 
-test("the four reviewed departures survive a backend outage without changing preseason data", () => {
+test("the five reviewed departures survive a backend outage without changing preseason data", () => {
   const original = structuredClone(currentSeason)
   const castaways = applyAiredResults(51, currentSeason.castaways)
   for (const expected of reviewedResults) {
@@ -19,8 +20,8 @@ test("the four reviewed departures survive a backend outage without changing pre
     assert.equal(person.result_order, expected.result_order)
     assert.equal(person.departure_reason, expected.departure_reason)
   }
-  assert.equal(castaways.filter((person) => person.result_order != null).length, 4)
-  assert.equal(castaways.filter((person) => person.departure_reason != null).length, 4)
+  assert.equal(castaways.filter((person) => person.result_order != null).length, 5)
+  assert.equal(castaways.filter((person) => person.departure_reason != null).length, 5)
   assert.deepEqual(castaways.map((person) => person.name), original.castaways.map((person) => person.name))
   assert.deepEqual(currentSeason, original)
   assert.ok(currentSeason.castaways.every((person) => person.result_order == null && person.departure_reason == null))

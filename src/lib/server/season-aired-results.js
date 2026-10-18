@@ -4,13 +4,16 @@
 // https://www.tvline.com/2267004/survivor-51-premiere-recap-coin-flip-return-aaliyah-voted-out/
 // https://www.cbs.com/shows/survivor/
 // Departure order and Rob's quit updated from the owner's October 7, 2026 report.
-// result_order is finishing place: first out of 21 is #21, fourth out is #18.
+// Jenna's E4 vote-out (October 14, 2026) confirmed October 16 from the owner's
+// report and her exit interview: https://parade.com/tv/jenna-doore-survivor-51-eliminated-interview
+// result_order is finishing place: first out of 21 is #21, fifth out is #17.
 const airedResults = {
   51: [
     { name: "Aaliyah Puglia", result_order: 21, departure_reason: "voted_out" },
     { name: "Ana Sani", result_order: 20, departure_reason: "voted_out" },
     { name: "Rob Antonson", result_order: 19, departure_reason: "quit" },
     { name: "Patt Cannaday", result_order: 18, departure_reason: "voted_out" },
+    { name: "Jenna Doore", result_order: 17, departure_reason: "voted_out" },
   ],
 }
 
