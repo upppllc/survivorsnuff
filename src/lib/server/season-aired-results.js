@@ -6,7 +6,8 @@
 // Departure order and Rob's quit updated from the owner's October 7, 2026 report.
 // Jenna's E4 vote-out (October 14, 2026) confirmed October 16 from the owner's
 // report and her exit interview: https://parade.com/tv/jenna-doore-survivor-51-eliminated-interview
-// result_order is finishing place: first out of 21 is #21, fifth out is #17.
+// Alexis, then Linnea, were voted out per the owner's October 21, 2026 report.
+// result_order is finishing place: first out of 21 is #21, seventh out is #15.
 const airedResults = {
   51: [
     { name: "Aaliyah Puglia", result_order: 21, departure_reason: "voted_out" },
@@ -14,6 +15,8 @@ const airedResults = {
     { name: "Rob Antonson", result_order: 19, departure_reason: "quit" },
     { name: "Patt Cannaday", result_order: 18, departure_reason: "voted_out" },
     { name: "Jenna Doore", result_order: 17, departure_reason: "voted_out" },
+    { name: "Alexis Levine", result_order: 16, departure_reason: "voted_out" },
+    { name: "Linnea Capobianco", result_order: 15, departure_reason: "voted_out" },
   ],
 }
 
