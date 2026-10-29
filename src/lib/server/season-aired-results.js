@@ -7,7 +7,8 @@
 // Jenna's E4 vote-out (October 14, 2026) confirmed October 16 from the owner's
 // report and her exit interview: https://parade.com/tv/jenna-doore-survivor-51-eliminated-interview
 // Alexis, then Linnea, were voted out per the owner's October 21, 2026 report.
-// result_order is finishing place: first out of 21 is #21, seventh out is #15.
+// Ori was voted out per the owner's October 29, 2026 report.
+// result_order is finishing place: first out of 21 is #21, eighth out is #14.
 const airedResults = {
   51: [
     { name: "Aaliyah Puglia", result_order: 21, departure_reason: "voted_out" },
@@ -17,6 +18,7 @@ const airedResults = {
     { name: "Jenna Doore", result_order: 17, departure_reason: "voted_out" },
     { name: "Alexis Levine", result_order: 16, departure_reason: "voted_out" },
     { name: "Linnea Capobianco", result_order: 15, departure_reason: "voted_out" },
+    { name: "Ori Jean-Charles", result_order: 14, departure_reason: "voted_out" },
   ],
 }
 
