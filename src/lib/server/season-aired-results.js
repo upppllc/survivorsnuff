@@ -8,7 +8,9 @@
 // report and her exit interview: https://parade.com/tv/jenna-doore-survivor-51-eliminated-interview
 // Alexis, then Linnea, were voted out per the owner's October 21, 2026 report.
 // Ori was voted out per the owner's October 29, 2026 report.
-// result_order is finishing place: first out of 21 is #21, eighth out is #14.
+// Brady's E7 vote-out (November 4, 2026) confirmed by the owner's November 5
+// report and https://www.tvline.com/2307100/survivor-51-recap-episode-7-brady-voted-out-merge/
+// result_order is finishing place: first out of 21 is #21, ninth out is #13.
 const airedResults = {
   51: [
     { name: "Aaliyah Puglia", result_order: 21, departure_reason: "voted_out" },
@@ -19,6 +21,7 @@ const airedResults = {
     { name: "Alexis Levine", result_order: 16, departure_reason: "voted_out" },
     { name: "Linnea Capobianco", result_order: 15, departure_reason: "voted_out" },
     { name: "Ori Jean-Charles", result_order: 14, departure_reason: "voted_out" },
+    { name: "Brady Booker", result_order: 13, departure_reason: "voted_out" },
   ],
 }
 
