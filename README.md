@@ -5,7 +5,7 @@ season is Survivor 51, with an official cast guide and downloadable cast sheets.
 
 ## Local development
 
-Use Node.js **22.12 or later** and npm:
+Use Node.js **26.13.1** and npm:
 
 ```sh
 npm ci
@@ -204,6 +204,6 @@ its settings change.
 
 ## Runtime and dependency verification
 
-Use Node.js 24 (`nvm use`) and normal `npm install`. Run `npm run verify` before releasing. The app uses SvelteKit 3, Vercel's Node.js 24 runtime, and TypeScript 6.
+Use Node.js 26 (`nvm use`) and normal `npm install`. Run `npm run verify` before releasing. The app uses SvelteKit 3, Vercel's Node.js 26 runtime, and TypeScript 6.
 
 `npm-check-updates` follows `.ncurc.json`: it respects peer dependencies and Node requirements. TypeScript 7 is held because the current SvelteKit and checker support TypeScript 6. Vercel Analytics stays at the generic, Kit 3 compatible version 1.3.2 while a compatible newer release is reviewed. Analytics uses explicit public-page navigation tracking and strips query strings and private routes.
